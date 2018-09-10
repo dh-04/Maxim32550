@@ -41,7 +41,6 @@ extern "C"
 #define MAX_CHARACTER_PER_LINE				24
 #define MAX_LCD_LINE						6
 
-
 typedef struct
 {
 	UInt16 lineMask;
@@ -66,13 +65,6 @@ typedef struct
 	mlsLcdRow_t row[MAX_LCD_LINE];
 }mlsLcdStringDataBlock_t;
 
-typedef enum
-{
-	Portrait_1,  /*!< Portrait orientation mode 1 */
-	Portrait_2,  /*!< Portrait orientation mode 2 */
-	Landscape_1, /*!< Landscape orientation mode 1 */
-	Landscape_2  /*!< Landscape orientation mode 2 */
-} mlsLCD_Orientation_t;
 
 typedef enum
 {
@@ -86,7 +78,10 @@ typedef enum
  *@brief This function initialize SPI channel and send command byte to lcd
  */
 
-mlsErrorCode_t mlsLCDSpiInit(void);
+mlsErrorCode_t mlsLCDParallelInit(void);
+void mlsOsalDelayMs(unsigned int ms);
+mlsErrorCode_t mlsLCDInit(void);
+void CHECK(UInt8 data);
 
 #ifdef __cplusplus
 }

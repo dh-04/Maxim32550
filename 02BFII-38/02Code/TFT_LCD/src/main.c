@@ -68,8 +68,7 @@
 int main(void)
 {
  	/* Infinite loop */
-	int check = 0x80;
-	Check(check);
+	mlsLCDInit();
  	while (1) {
 	}
 }
@@ -77,5 +76,4 @@ int main(void)
 #ifdef __SCPA_FWK__
 #error "This example does not handle SCPA Target"
 #endif //__SCPA_FWK__
-
 
