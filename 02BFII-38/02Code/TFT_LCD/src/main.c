@@ -60,11 +60,6 @@
 #define EX_BLINK_LED_VERS_PATCH	<VERSPAT>
 #define EX_BLINK_LED_VERSION_STRING	"v" xstr(EX_BLINK_LED_VERS_MAJOR) "." xstr(EX_BLINK_LED_VERS_MINOR) "." xstr(EX_BLINK_LED_VERS_PATCH)
 
-
-#define LED1_GPIO_PORT	MML_GPIO_DEV0
-#define LED1_GPIO_PIN	21
-#define DELAY_TIME		3000
-
 int main(void)
 {
  	/* Infinite loop */

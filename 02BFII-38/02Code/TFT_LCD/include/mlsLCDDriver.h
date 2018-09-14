@@ -10,6 +10,7 @@ extern "C"
 #include "mlsLCDFont.h"
 #include <stdbool.h>
 #include <MAX325xx.h>
+#include "mml_spi.h"
 
 #define mlsOsalMutexLock (void)
 
@@ -78,10 +79,7 @@ typedef enum
  *@brief This function initialize SPI channel and send command byte to lcd
  */
 
-mlsErrorCode_t mlsLCDParallelInit(void);
-void mlsOsalDelayMs(unsigned int ms);
 mlsErrorCode_t mlsLCDInit(void);
-void CHECK(UInt8 data);
 
 #ifdef __cplusplus
 }

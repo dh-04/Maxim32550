@@ -1,38 +1,34 @@
 #include "mlsLCDDriver.h"
 #include "mlsLCDFont.h"
 
-#define LCD_CS_PIN			25 //CS:11 MISO_SPI1:P0.25
-#define LCD_RS_PIN			29 //RS:13 SPI1_TFT_CS_N:P0.29
-#define LCD_WR_PIN			27 //WR:14 SPI1_CLOCK:P0.27
+#include <MAX325xx.h>
 
-#define LCD_D7_PIN			26 //D7:16 SPI1_MOSI:P0.26
-#define LCD_D6_PIN			28 //D6:17 SPI1_FL_CS_N :P0.28
-#define LCD_D5_PIN			18 //D5:18 SPI0_SCLK :P0.18
-#define LCD_D4_PIN			17 //D4:19 SPI0_MOSI: P0.17
-#define LCD_D3_PIN			16 //D3:20 SPI0_MISO: P.16
-#define LCD_D2_PIN			19 //D2:21 SPI0_NFC_CS_N: P.19
-#define LCD_D1_PIN			12 //D1:22 UART1_RX:P0.12
-#define LCD_D0_PIN			13 //D0:23 UART1_TX:P0.13
+#define LCD_A0_PIN			30
+#define LCD_A0_PORT			MML_GPIO_DEV0
 
-#define LCD_PARALLEL_PORT	MML_GPIO_DEV0
+#define LCD_CS_PIN			28
+#define LCD_CS_PORT			MML_GPIO_DEV0
+
+#define LCD_RTS_PIN			31
+#define LCD_RTS_PORT		MML_GPIO_DEV0
+
+#define LCD_SPI_DEVID		MML_SPI_DEV1
 
 #define LCD_COMMAND_GRAM	0x2C
 #define LCD_COMMAND_MAC		0x36
 #define LCD_CHAR_SPACE		5
 #define X_OFFSET			10
 #define Y_OFFSET			16
-#define LCD_SPI_DEVID 		MML_SPI_DEV1
-#define NORFLASH_SECTOR_SIZE 0x00010000
 
 
-#define LCD_WR_LO() 	(mml_gpio_pin_output(LCD_PARALLEL_PORT, LCD_WR_PIN, MML_GPIO_OUT_LOGIC_ZERO))
-#define LCD_WR_HI()     (mml_gpio_pin_output(LCD_PARALLEL_PORT, LCD_WR_PIN, MML_GPIO_OUT_LOGIC_ONE))
+#define LCD_A0_CMD() 	(mml_gpio_pin_output(LCD_A0_PORT, LCD_A0_PIN, MML_GPIO_OUT_LOGIC_ZERO))
+#define LCD_A0_DATA()   (mml_gpio_pin_output(LCD_A0_PORT, LCD_A0_PIN, MML_GPIO_OUT_LOGIC_ONE))
 
-#define LCD_RS_CMD() 	(mml_gpio_pin_output(LCD_PARALLEL_PORT, LCD_RS_PIN, MML_GPIO_OUT_LOGIC_ZERO))
-#define LCD_RS_DATA()   (mml_gpio_pin_output(LCD_PARALLEL_PORT, LCD_RS_PIN, MML_GPIO_OUT_LOGIC_ONE))
+#define LCD_CS_SEL() 	(mml_gpio_pin_output(LCD_CS_PORT, LCD_CS_PIN, MML_GPIO_OUT_LOGIC_ZERO))
+#define LCD_CS_CLR()    (mml_gpio_pin_output(LCD_CS_PORT, LCD_CS_PIN, MML_GPIO_OUT_LOGIC_ONE))
 
-#define LCD_CS_SEL() 	(mml_gpio_pin_output(LCD_PARALLEL_PORT, LCD_CS_PIN, MML_GPIO_OUT_LOGIC_ZERO))
-#define LCD_CS_CLR()    (mml_gpio_pin_output(LCD_PARALLEL_PORT, LCD_CS_PIN, MML_GPIO_OUT_LOGIC_ONE))
+#define LCD_RTS_LO() 	(mml_gpio_pin_output(LCD_RTS_PORT, LCD_RTS_PIN, MML_GPIO_OUT_LOGIC_ZERO))
+#define LCD_RTS_HI()    (mml_gpio_pin_output(LCD_RTS_PORT, LCD_RTS_PIN, MML_GPIO_OUT_LOGIC_ONE))
 
 typedef enum
 {
@@ -56,28 +52,18 @@ typedef struct {
 mlsLCDOptions_t gLCD_opt;
 UInt8 gLCDBuffer[4800];
 
-//void __attribute__ ((noinline))  __attribute__((optimize("-O0")))
-void mlsOsalDelayMs(unsigned int ms)
+void __attribute__ ((noinline))  __attribute__((optimize("-O0")))  mlsOsalDelayMs(unsigned int ms)
 {
-     unsigned int i = ms*5000;
-     unsigned int systemfreq = 0;
-     mml_get_system_frequency(&systemfreq);
+    unsigned int i = ms*5000;
+    unsigned int systemfreq = 0;
+    mml_get_system_frequency(&systemfreq);
 
-     i /= (MML_SYSTEM_FREQUENCY_108_MHZ/systemfreq);
+    i /= (MML_SYSTEM_FREQUENCY_108_MHZ/systemfreq);
 
-     for (; i != 0 ; i--);
-
+    for (; i != 0 ; i--)
+         __asm volatile ("nop\n");
 }
-/**
- * @fn mlsParallelTransfer
- * @brief This function set the coordinate to write data to LCD
- */
-void mlsParallelTransfer(UInt8 buffer);
-/**
- * @fn mlsParallelTransferBuffer
- * @brief This function set the coordinate to write data to LCD
- */
-void mlsParallelTransferBuffer(UInt8* buffer, UInt16 length);
+
 /**
  * @fn mlsLCDSetCursorPosition
  * @brief This function set the coordinate to write data to LCD
@@ -131,12 +117,50 @@ mlsErrorCode_t mlsLCDInit(void)
 
 	mlsLCDParallelInit();
 	mlsLCDInitial_ST7789V();
-//	mlsLCDDrawScreen(LCD_BLUE);
+	mlsLCDDrawScreen(LCD_RED);
 	return errCode;
 }
 mlsErrorCode_t mlsLCDParallelInit(void)
 {
 	mlsErrorCode_t errCode = MLS_SUCCESS;
+
+	mml_spi_params_t	spi_conf;
+
+	/** Fill parameters */
+	spi_conf.baudrate 		= 12000000;
+	spi_conf.word_size 		= 8;
+	spi_conf.mode 			= SPIn_CNTL_MMEN_master;
+	spi_conf.wor 			= SPIn_CNTL_WOR_disable;
+	spi_conf.clk_pol 		= SPIn_CNTL_CLKPOL_idleLo;
+	spi_conf.phase 			= SPIn_CNTL_PHASE_inactiveEdge;
+	spi_conf.brg_irq 		= SPIn_CNTL_BIRQ_disable;
+	spi_conf.ssv 			= SPIn_MOD_SSV_hi;
+	spi_conf.ssio 			= SPIn_MOD_SSIO_output;
+	spi_conf.tlj 			= SPIn_MOD_TX_LJ_disable;
+	spi_conf.dma_tx.active 	= SPIn_DMA_REG_DMA_EN_disable;
+	spi_conf.dma_rx.active 	= SPIn_DMA_REG_DMA_EN_disable;
+
+	/** Set CS0 */
+	//spi_conf.ssio = 0x1;
+
+	/** Call initialization function from driver */
+	if(mml_spi_init(LCD_SPI_DEVID, (mml_spi_params_t*)&spi_conf) == NO_ERROR)
+	{
+		/** Now enable SPI interface */
+		M_MML_SPI_ENABLE(LCD_SPI_DEVID);
+	}
+
+	/*Channel Source Address*/
+	DMAC->DMA_CH[MML_DMA_CH0].DMAn_SRC = 0;
+
+	/*Enable Destination Increment*/
+	DMAC->DMA_CH[MML_DMA_CH0].DMAn_CFG |= DMAn_CFG_DSTINC_Msk;
+
+	/*Channel Destination Address*/
+	DMAC->DMA_CH[MML_DMA_CH0].DMAn_DST = 0;
+
+	/*Enable Source Increment*/
+	DMAC->DMA_CH[MML_DMA_CH0].DMAn_CFG |= DMAn_CFG_SRCINC_Msk;
 
 	/* Initialize GPIO */
 	mml_gpio_config_t 	gpio_conf;
@@ -144,178 +168,121 @@ mlsErrorCode_t mlsLCDParallelInit(void)
 	/** Initialize GPIO port */
 	gpio_conf.gpio_direction = MML_GPIO_DIR_OUT;
 	gpio_conf.gpio_function = MML_GPIO_NORMAL_FUNCTION;
+	gpio_conf.gpio_intr_mode = 0;
+	gpio_conf.gpio_intr_polarity = 0;
 	gpio_conf.gpio_pad_config = MML_GPIO_PAD_NORMAL;
 
-	mml_gpio_init(MML_GPIO_DEV0, 12, 2, gpio_conf);
-	mml_gpio_init(MML_GPIO_DEV0, 16, 4, gpio_conf);
-	mml_gpio_init(MML_GPIO_DEV0, 25, 5, gpio_conf);
+	mml_gpio_init(LCD_A0_PORT, LCD_A0_PIN, 1, gpio_conf);
+	mml_gpio_init(LCD_CS_PORT, LCD_CS_PIN, 1, gpio_conf);
+	mml_gpio_init(LCD_RTS_PORT, LCD_RTS_PIN, 1, gpio_conf);
 
-	LCD_RS_CMD();
-	LCD_WR_LO();
 	LCD_CS_CLR();
-	mlsParallelTransfer(0x00);
+	LCD_A0_CMD();
+	LCD_RTS_HI();
 
 	return errCode;
 }
 
-void mlsParallelTransfer(UInt8 buffer)
+static mlsErrorCode_t mlsLCDWriteCommandByte(UInt8 command)
 {
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D7_PIN, (buffer >> 7) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D6_PIN, (buffer >> 6) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D5_PIN, (buffer >> 5) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D4_PIN, (buffer >> 4) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D3_PIN, (buffer >> 3) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D2_PIN, (buffer >> 2) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D1_PIN, (buffer >> 1) & 0x01);
-	mml_gpio_pin_output(LCD_PARALLEL_PORT,LCD_D0_PIN, (buffer >> 0) & 0x01);
-}
-
-void mlsParallelTransferBuffer(UInt8* buffer, UInt16 length)
-{
-	unsigned int	size = length;
-	unsigned char 	*ptr = (unsigned char *)buffer;
-
-	while(size)
-	{
-		mlsLCDWriteDataByte(*ptr);
-		size--;
-		ptr++;
-	}
-}
-void CHECK(UInt8 data)
-{
-	mlsLCDWriteCommandByte(data);
-}
-
-static mlsErrorCode_t mlsLCDWriteCommandByte(UInt8 command) // tested
-{
+	LCD_A0_CMD();
 	LCD_CS_SEL();
-	LCD_WR_LO();
-	LCD_RS_CMD();
-	mlsParallelTransfer(command);
-	LCD_WR_HI();
+	mml_spi_dma_rw(LCD_SPI_DEVID, MML_DMA_CH0, MML_DMA_CH1, &command, NULL, 1);
 	LCD_CS_CLR();
 	return MLS_SUCCESS;
 }
 
-static mlsErrorCode_t mlsLCDWriteDataByte(UInt8 data)  //tested
+static mlsErrorCode_t mlsLCDWriteDataByte(UInt8 data)
 {
+	LCD_A0_DATA();
 	LCD_CS_SEL();
-	LCD_WR_LO();
-	LCD_RS_DATA();
-	mlsParallelTransfer(data);
-	LCD_WR_HI();
+	mml_spi_dma_rw(LCD_SPI_DEVID, MML_DMA_CH0, MML_DMA_CH1, &data, NULL, 1);
 	LCD_CS_CLR();
 	return MLS_SUCCESS;
 }
+
 static mlsErrorCode_t mlsLCDWriteDataBuffer(UInt8* buffer, UInt16 length)
 {
-	mlsParallelTransferBuffer(buffer,length);
+	LCD_A0_DATA();
+	LCD_CS_SEL();
+	mml_spi_dma_rw(LCD_SPI_DEVID, MML_DMA_CH0, MML_DMA_CH1, buffer, NULL, length);
+	LCD_CS_CLR();
 	return MLS_SUCCESS;
 }
+
 static mlsErrorCode_t mlsLCDInitial_ST7789V(void)
 {
-    mlsLCDWriteCommandByte(0x11);      //Exit sleep
-    mlsOsalDelayMs(120);
+	//---------------------------------------------------------------------------------------------------//
+		mlsLCDWriteCommandByte(0x11);
+		mlsOsalDelayMs(120);                //Delay 120ms
+		//--------------------------------------Display Setting------------------------------------------//
+		mlsLCDRotate(Landscape_1);
+		mlsLCDWriteCommandByte( 0x3a);
+		mlsLCDWriteDataByte(0x05);
+		//--------------------------------ST7789V Frame rate setting----------------------------------//
+		mlsLCDWriteCommandByte(0xb2);
+		mlsLCDWriteDataByte(0x0c);
+		mlsLCDWriteDataByte(0x0c);
+		mlsLCDWriteDataByte(0x00);
+		mlsLCDWriteDataByte(0x33);
+		mlsLCDWriteDataByte(0x33);
+		mlsLCDWriteCommandByte( 0xb7);
+		mlsLCDWriteDataByte(0x35);
+		//---------------------------------ST7789V Power setting--------------------------------------//
+		mlsLCDWriteCommandByte( 0xbb);
+		mlsLCDWriteDataByte(0x2b);
+		mlsLCDWriteCommandByte( 0xc0);
+		mlsLCDWriteDataByte(0x2c);
+		mlsLCDWriteCommandByte( 0xc2);
+		mlsLCDWriteDataByte(0x01);
+		mlsLCDWriteCommandByte( 0xc3);
+		mlsLCDWriteDataByte(0x11);
+		mlsLCDWriteCommandByte( 0xc4);
+		mlsLCDWriteDataByte(0x20);
+		mlsLCDWriteCommandByte( 0xc6);
+		mlsLCDWriteDataByte(0x0f);
+		mlsLCDWriteCommandByte( 0xd0);
+		mlsLCDWriteDataByte(0xa4);
+		mlsLCDWriteDataByte(0xa1);
+		//--------------------------------ST7789V gamma setting---------------------------------------//
+		mlsLCDWriteCommandByte( 0xe0);
+		mlsLCDWriteDataByte(0xd0);
+		mlsLCDWriteDataByte(0x00);
+		mlsLCDWriteDataByte(0x05);
+		mlsLCDWriteDataByte(0x0e);
+		mlsLCDWriteDataByte(0x15);
+		mlsLCDWriteDataByte(0x0d);
+		mlsLCDWriteDataByte(0x37);
+		mlsLCDWriteDataByte(0x43);
+		mlsLCDWriteDataByte(0x47);
+		mlsLCDWriteDataByte(0x09);
+		mlsLCDWriteDataByte(0x15);
+		mlsLCDWriteDataByte(0x12);
+		mlsLCDWriteDataByte(0x16);
+		mlsLCDWriteDataByte(0x19);
+		mlsLCDWriteCommandByte( 0xe1);
+		mlsLCDWriteDataByte(0xd0);
+		mlsLCDWriteDataByte(0x00);
+		mlsLCDWriteDataByte(0x05);
+		mlsLCDWriteDataByte(0x0d);
+		mlsLCDWriteDataByte(0x0c);
+		mlsLCDWriteDataByte(0x06);
+		mlsLCDWriteDataByte(0x2d);
+		mlsLCDWriteDataByte(0x44);
+		mlsLCDWriteDataByte(0x40);
+		mlsLCDWriteDataByte(0x0e);
+		mlsLCDWriteDataByte(0x1c);
+		mlsLCDWriteDataByte(0x18);
+		mlsLCDWriteDataByte(0x16);
+		mlsLCDWriteDataByte(0x19);
 
-    mlsLCDWriteCommandByte(0x3A);      //interface pixel format
-    mlsLCDWriteDataByte(0x55);         // 65K of RGB interface and 16 bit/pixel
+		mlsLCDWriteCommandByte(0x20);  // IPS Inversion off
+		mlsOsalDelayMs(100);
 
-    mlsLCDRotate(Landscape_1);
+		mlsLCDWriteCommandByte(0x29);  //Display on
+		mlsOsalDelayMs(100);
 
-    mlsLCDWriteCommandByte(0xB2);      //Porch setting
-    mlsLCDWriteDataByte(0x00);//00
-    mlsLCDWriteDataByte(0x00);//00
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x33);
-    mlsLCDWriteDataByte(0x33);
-
-    mlsLCDWriteCommandByte(0xb7);      //Gate control
-    mlsLCDWriteDataByte(0x35);
-
-    mlsLCDWriteCommandByte(0xb8);
-    mlsLCDWriteDataByte(0x2f);
-    mlsLCDWriteDataByte(0x2b);
-    mlsLCDWriteDataByte(0x2f);
-
-    mlsLCDWriteCommandByte(0xbb);      //Vcom setiing
-    mlsLCDWriteDataByte(0x24);
-
-    mlsLCDWriteCommandByte(0xc0);      //LCM control
-    mlsLCDWriteDataByte(0x2c);
-
-    mlsLCDWriteCommandByte(0xc3);      //VHR set
-    mlsLCDWriteDataByte(0x10);
-
-    mlsLCDWriteCommandByte(0xc4);      //VDV set
-    mlsLCDWriteDataByte(0x20);
-
-    mlsLCDWriteCommandByte(0xC6);      //Frame rate control in Normal mode
-    mlsLCDWriteDataByte(0x11);
-
-    mlsLCDWriteCommandByte(0xd0);      //Power control
-    mlsLCDWriteDataByte(0xa4);
-    mlsLCDWriteDataByte(0xa1);
-
-    mlsLCDWriteCommandByte(0xe8);      //Power control 2
-    mlsLCDWriteDataByte(0x19);
-
-    mlsLCDWriteCommandByte(0xe9);      //Equalize time control
-    mlsLCDWriteDataByte(0x0d);
-    mlsLCDWriteDataByte(0x12);
-    mlsLCDWriteDataByte(0x00);
-
-    mlsLCDWriteCommandByte(0xE0);      //Gamma
-    mlsLCDWriteDataByte(0xd0);
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x08);
-    mlsLCDWriteDataByte(0x11);
-    mlsLCDWriteDataByte(0x1a);
-    mlsLCDWriteDataByte(0x2b);
-    mlsLCDWriteDataByte(0x33);
-    mlsLCDWriteDataByte(0x42);
-    mlsLCDWriteDataByte(0x26);
-    mlsLCDWriteDataByte(0x12);
-    mlsLCDWriteDataByte(0x21);
-    mlsLCDWriteDataByte(0x2f);
-    mlsLCDWriteDataByte(0x11);
-
-    mlsLCDWriteCommandByte(0xE1);      //Gamma
-    mlsLCDWriteDataByte(0xd0);
-    mlsLCDWriteDataByte(0x02);
-    mlsLCDWriteDataByte(0x09);
-    mlsLCDWriteDataByte(0x0d);
-    mlsLCDWriteDataByte(0x0d);
-    mlsLCDWriteDataByte(0x27);
-    mlsLCDWriteDataByte(0x2b);
-    mlsLCDWriteDataByte(0x33);
-    mlsLCDWriteDataByte(0x42);
-    mlsLCDWriteDataByte(0x17);
-    mlsLCDWriteDataByte(0x12);
-    mlsLCDWriteDataByte(0x11);
-    mlsLCDWriteDataByte(0x2f);
-    mlsLCDWriteDataByte(0x31);
-
-    mlsLCDWriteCommandByte(0x2a);      //Column Address set
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0xEF);
-
-    mlsLCDWriteCommandByte(0x2b);      //Row address set
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x00);
-    mlsLCDWriteDataByte(0x01);
-    mlsLCDWriteDataByte(0x3F);
-
-    mlsLCDWriteCommandByte(0x21);  // IPS Inversion on
-    mlsOsalDelayMs(100);
-
-    mlsLCDWriteCommandByte(0x29);  //Display on
-    mlsOsalDelayMs(100);
-    mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
-    return MLS_SUCCESS;
+	    return MLS_SUCCESS;
 }
 
 static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2)
@@ -363,7 +330,6 @@ mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation)
 mlsErrorCode_t mlsLCDDrawScreen(UInt16 color)
 {
     UInt32 i;
-//    mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
     for(i = 0; i < 2400; i++)
     {
         gLCDBuffer[2*i] =   (uint8_t) (color >> 8);
@@ -376,6 +342,5 @@ mlsErrorCode_t mlsLCDDrawScreen(UInt16 color)
     	mlsLCDWriteDataBuffer(gLCDBuffer,4800);
     }
 
-//    mlsOsalMutexUnlock(&gLcdMutex);
     return MLS_SUCCESS;
 }
