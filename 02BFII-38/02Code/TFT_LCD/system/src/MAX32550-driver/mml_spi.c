@@ -153,6 +153,41 @@ int mml_spi_shutdown(mml_spi_dev_t devnum) {
 		return COMMON_ERR_OUT_OF_RANGE;
 }
 
+int mml_spi_read_write(mml_spi_dev_t devnum, unsigned char *data_in,
+						unsigned char *data_out, unsigned int length)
+{
+	unsigned int	size = length;
+	unsigned char 	*ptr = (unsigned char *)data_in;
+	unsigned char 	*ptr_out = (unsigned char *)data_out;
+
+
+	while( size )
+	{
+		/** Send data */
+		spi_context.port[devnum].reg->DATA = (*ptr) << 8;
+		/** Wait 'til it's done */
+		while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
+
+		/** Retrieve data */
+		if(data_out == NULL)
+		{
+			(void) (spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask);
+		}
+		else
+		{
+			*ptr_out = spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask;
+			ptr_out++;
+		}
+
+		ptr++;
+		size--;
+	}
+	while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
+
+	return NO_ERROR;
+}
+
+
 int mml_spi_reset_interface(void) {
 	unsigned int loop = K_COBRA_RESET_WAIT_LOOP_MAX;
 
@@ -466,211 +501,6 @@ int mml_spi_transmit(mml_spi_dev_t devnum, unsigned char *data,
 	}
 	/* Wait for data transmitting complete and then Deasserts nSS I/O */
 	spi_context.port[devnum].reg->MOD |= SPIn_MOD_SSV_Msk;
-	return NO_ERROR;
-}
-
-int mml_spi_read_write(mml_spi_dev_t devnum, unsigned char *data_in,
-						unsigned char *data_out, unsigned int length)
-{
-	unsigned int	size = length;
-	unsigned char 	*ptr = (unsigned char *)data_in;
-	unsigned char 	*ptr_out = (unsigned char *)data_out;
-
-
-	while( size )
-	{
-		/** Send data */
-		spi_context.port[devnum].reg->DATA = (*ptr) << 8;
-		/** Wait 'til it's done */
-		 while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
-
-		/** Retrieve data */
-		if(data_out == NULL)
-		{
-			(void) (spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask);
-		}
-		else
-		{
-			*ptr_out = spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask;
-			ptr_out++;
-		}
-
-		ptr++;
-		size--;
-	}
-	while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
-
-	return NO_ERROR;
-}
-
-
-int mml_spi_dma_rw(mml_spi_dev_t devnum, mml_dma_channel_t ch_tx, mml_dma_channel_t ch_rx,
-		unsigned char *data_in, unsigned char *data_out, unsigned int length)
-{
-	unsigned char data_temp[length];
-
-	/* =========================== Configuration SPI RX ============================ */
-	/** Waiting for Channel Status Clear **/
-	while(DMAC->DMA_CH[ch_rx].DMAn_ST & DMAn_ST_CH_ST_Msk)
-	{
-		;
-	}
-
-	/*Channel Source Address*/
-	DMAC->DMA_CH[ch_rx].DMAn_SRC = 0;
-
-	/*Channel Destination Address*/
-	if(data_out == NULL)
-	{
-		DMAC->DMA_CH[ch_rx].DMAn_DST = (unsigned int)data_temp;
-	}
-	else
-	{
-		DMAC->DMA_CH[ch_rx].DMAn_DST = (unsigned int)data_out;
-	}
-
-	/*Enable Destination Increment*/
-	DMAC->DMA_CH[ch_rx].DMAn_CFG |= DMAn_CFG_DSTINC_Msk;
-
-	/*Set number of bytes data to be read*/
-	DMAC->DMA_CH[ch_rx].DMAn_CNT = (length & 0x00FFFFFF);
-
-	/*Set Request Select*/
-	DMAC->DMA_CH[ch_rx].DMAn_CFG &= ~DMAn_CFG_REQSEL_Msk;
-	switch(devnum)
-	{
-	case MML_SPI_DEV0:
-		DMAC->DMA_CH[ch_rx].DMAn_CFG |= ((DMAn_CFG_REQSEL_spi0Rx << DMAn_CFG_REQSEL_Pos) & DMAn_CFG_REQSEL_Msk);
-		break;
-
-	case MML_SPI_DEV1:
-		DMAC->DMA_CH[ch_rx].DMAn_CFG |= ((DMAn_CFG_REQSEL_spi1Rx << DMAn_CFG_REQSEL_Pos) & DMAn_CFG_REQSEL_Msk);
-		break;
-
-	case MML_SPI_DEV2:
-		DMAC->DMA_CH[ch_rx].DMAn_CFG |= ((DMAn_CFG_REQSEL_spi2Rx << DMAn_CFG_REQSEL_Pos) & DMAn_CFG_REQSEL_Msk);
-		break;
-	default:
-		return COMMON_ERR_NO_DEV;
-		break;
-	}
-
-	/*Enable Channel*/
-	DMAC->DMA_CH[ch_rx].DMAn_CFG |= DMAn_CFG_CHEN_Msk;
-
-
-	/* =========================== Configuration SPI TX ============================ */
-	/** Waiting for Channel Status Clear **/
-	while(DMAC->DMA_CH[ch_tx].DMAn_ST & DMAn_ST_CH_ST_Msk)
-	{
-		;
-	}
-
-	/*Set CTZ*/
-	DMAC->DMA_CH[ch_tx].DMAn_ST |= DMAn_ST_CTZ_ST_Msk;
-
-	/*Channel Source Address*/
-	DMAC->DMA_CH[ch_tx].DMAn_SRC = (unsigned int)data_in;
-
-	/*Enable Source Increment*/
-	DMAC->DMA_CH[ch_tx].DMAn_CFG |= DMAn_CFG_SRCINC_Msk;
-
-	/*Channel Destination Address*/
-	DMAC->DMA_CH[ch_tx].DMAn_DST = 0;
-
-	/*Set number of bytes to be transfer*/
-	DMAC->DMA_CH[ch_tx].DMAn_CNT = (length & 0x00FFFFFF);
-
-	/*Set Request Select*/
-	DMAC->DMA_CH[ch_tx].DMAn_CFG &= ~DMAn_CFG_REQSEL_Msk;
-	switch(devnum)
-	{
-	case MML_SPI_DEV0:
-		DMAC->DMA_CH[ch_tx].DMAn_CFG |= ((DMAn_CFG_REQSEL_spi0Tx << DMAn_CFG_REQSEL_Pos) & DMAn_CFG_REQSEL_Msk);
-		break;
-
-	case MML_SPI_DEV1:
-		DMAC->DMA_CH[ch_tx].DMAn_CFG |= ((DMAn_CFG_REQSEL_spi1Tx << DMAn_CFG_REQSEL_Pos) & DMAn_CFG_REQSEL_Msk);
-		break;
-
-	case MML_SPI_DEV2:
-		DMAC->DMA_CH[ch_tx].DMAn_CFG |= ((DMAn_CFG_REQSEL_spi2Tx << DMAn_CFG_REQSEL_Pos) & DMAn_CFG_REQSEL_Msk);
-		break;
-	default:
-		return COMMON_ERR_NO_DEV;
-		break;
-	}
-
-	/*Enable Channel*/
-	DMAC->DMA_CH[ch_tx].DMAn_CFG |= DMAn_CFG_CHEN_Msk;
-
-	/*Configure SPI DMA
-	 * - Clear TX and RX FIFO
-	 * - Enable TX and RX DMA
-	 * */
-	spi_context.port[devnum].reg->DMA_REG = 0x80108010;
-
-	/** Wait write and read finish**/
-	while((DMAC->DMA_CH[ch_tx].DMAn_ST & DMAn_ST_CH_ST_Msk) ||
-		  (DMAC->DMA_CH[ch_rx].DMAn_ST & DMAn_ST_CH_ST_Msk))
-	{
-		;
-	}
-
-	/*Configure SPI DMA
-	 * - Clear TX and RX FIFO
-	 * - Disable TX and RX DMA
-	 * */
-	spi_context.port[devnum].reg->DMA_REG = 0x00100010;
-
-	return NO_ERROR;
-}
-
-
-int mml_spi_read(mml_spi_dev_t devnum, unsigned char *data_out,
-						 unsigned int length)
-{
-	unsigned int	size = length;
-	unsigned char 	*ptr_out = (unsigned char *)data_out;
-	unsigned char value = 0x00;
-
-	while( size )
-	{
-		/** Send data */
-		spi_context.port[devnum].reg->DATA = value << 8;
-		/** Wait 'til it's done */
-		while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
-		/** Retrieve data */
-		*ptr_out = spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask;
-		ptr_out++;
-
-		size--;
-	}
-	while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
-
-	return NO_ERROR;
-}
-
-int mml_spi_write(mml_spi_dev_t devnum, unsigned char *data_in,
-						 unsigned int length)
-{
-	unsigned int	size = length;
-	unsigned char 	*ptr = (unsigned char *)data_in;
-
-	while( size )
-	{
-		/** Send data */
-		spi_context.port[devnum].reg->DATA = (*ptr) << 8;
-		/** Wait 'til it's done */
-		while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
-		/** Retrieve data */
-		(void) (spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask);
-
-		ptr++;
-		size--;
-	}
-	while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
-
 	return NO_ERROR;
 }
 

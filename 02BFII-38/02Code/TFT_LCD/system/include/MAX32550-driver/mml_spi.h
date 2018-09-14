@@ -250,6 +250,9 @@ int mml_spi_init(mml_spi_dev_t devnum, mml_spi_params_t *pparams);
  */
 int mml_spi_shutdown(mml_spi_dev_t devnum);
 
+int mml_spi_read_write(mml_spi_dev_t devnum, unsigned char *data_in,
+						unsigned char *data_out, unsigned int length);
+
 /**
  * The function resets all SPI interface
  * @retval NO_ERROR							No error

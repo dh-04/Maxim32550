@@ -7,6 +7,11 @@ extern "C"
 {
 #endif
 
+
+#define True 1
+#define False 0
+
+typedef char 				   Bool;
 typedef signed char            Int8;
 typedef unsigned char          UInt8;
 typedef signed short           Int16;

@@ -60,10 +60,13 @@
 #define EX_BLINK_LED_VERS_PATCH	<VERSPAT>
 #define EX_BLINK_LED_VERSION_STRING	"v" xstr(EX_BLINK_LED_VERS_MAJOR) "." xstr(EX_BLINK_LED_VERS_MINOR) "." xstr(EX_BLINK_LED_VERS_PATCH)
 
+extern mlsLCDTestMain();
 int main(void)
 {
  	/* Infinite loop */
 	mlsLCDInit();
+
+	mlsLCDTestMain();
  	while (1) {
 	}
 }
