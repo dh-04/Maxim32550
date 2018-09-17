@@ -12,7 +12,6 @@
  */
 #include "mlsLCDDriver.h"
 #include "mlsLCDFont.h"
-#include "mlsCalibri12pts.h"
 
 #include <MAX325xx.h>
 
@@ -74,12 +73,6 @@ static const UInt16 gLineMask[] =
 	(UInt16) LINE5,
 	(UInt16) LINE6,
 };
-
-/**
- * @fn mlsLCDSetCursorPosition
- * @brief This function set the coordinate to write data to LCD
- */
-static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2);
 /**
  * @fn mlsLCDInitial_ST7789
  * @brief This function send command byte to initialize LCD
@@ -90,11 +83,6 @@ static mlsErrorCode_t mlsLCDInitial_ST7789V(void);
  * @brief This function initialize SPI channel for LCD
  */
 mlsErrorCode_t mlsLCDSpiInit(void);
-/**
- * @fn mlsLCDDrawPixel
- * @brief This function draw a pixel on LCD
- */
-static mlsErrorCode_t mlsLCDDrawPixel(UInt16 x, UInt16 y, UInt16 color);
 /**
  * @fn mlsLCDWriteCommandByte
  * @brief This function send command byte
@@ -110,26 +98,10 @@ static mlsErrorCode_t mlsLCDWriteDataByte(UInt8 data);
  * @brief This function write many bytes of data
  */
 static mlsErrorCode_t mlsLCDWriteDataBuffer(UInt8 *buffer, UInt16 length);
-/**
- * @fn mlsLCDFill
- * @brief This function fill a rectangle by a color
- */
-static mlsErrorCode_t mlsLCDFill(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2,UInt16 color);
-/**
- * @fn mlsLCDSetPixelBuffer
- * @brief This function set a pixel data to be written in databuffer
- */
-static mlsErrorCode_t mlsLCDSetPixelBuffer(UInt16 index, UInt16 color);
-/**
- * @fn mlsLCDPutc
- * @brief This function write a character from font
- */
-static void mlsLCDPutc(UInt16 x, UInt16 y, UInt32 utf8, mlsLcdFontInfo_t *font, UInt16 foreground, UInt16 background);
 
-
-
+mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation);
 void mlsDelay(int microSecond);
-
+static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2);
 mlsErrorCode_t mlsLCDInit(void)
 {
 	mlsErrorCode_t errCode = MLS_SUCCESS;
@@ -221,71 +193,7 @@ static mlsErrorCode_t mlsLCDWriteDataBuffer(UInt8 *buffer, UInt16 length)
 	LCD_SET_CS() ;
 	return MLS_SUCCESS;
 }
-static mlsErrorCode_t mlsLCDFill(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2,UInt16 color)
-{
-	Int16 count;
-	Int16 i;
 
-	count = (Int16)(x2 - x1 + 1)*(y2 - y1 + 1)*2;
-
-    for(i = 0; i < count; i++)
-    {
-        gLCDBuffer[2*i] =   (uint8_t) (color >> 8);
-        gLCDBuffer[2*i+1] = (uint8_t) color & 0xFF;
-    }
-    mlsLCDSetCursorPosition(x1,y1,x2,y2);
-    mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
-
-    while(count > 0)
-    {
-    	mlsLCDWriteDataBuffer(gLCDBuffer,count < 4800 ? count : 4800);
-    	mlsDelay(2000);
-    	count = count - 4800;
-    }
-    return MLS_SUCCESS;
-}
-static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2)
-{
-    mlsLCDWriteCommandByte(0x2a);
-    mlsLCDWriteDataByte(x1 >> 8);
-    mlsLCDWriteDataByte(x1 & 0xFF);
-    mlsLCDWriteDataByte(x2 >> 8);
-    mlsLCDWriteDataByte(x2 & 0xFF);
-
-    mlsLCDWriteCommandByte(0x2b);
-    mlsLCDWriteDataByte(y1 >> 8);
-    mlsLCDWriteDataByte(y1 & 0xFF);
-    mlsLCDWriteDataByte(y2 >> 8);
-    mlsLCDWriteDataByte(y2 & 0xFF);
-    return MLS_SUCCESS;
-}
-static mlsErrorCode_t mlsLCDDrawPixel(UInt16 x, UInt16 y, UInt16 color)
-{
-    mlsLCDSetCursorPosition(x, y, x, y);
-    mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
-    mlsLCDWriteDataByte(color >> 8);
-    mlsLCDWriteDataByte(color & 0xFF);
-    return MLS_SUCCESS;
-}
-UInt8 mlsLcdGetPixel(UInt16 x, UInt16 y, UInt8 bytewidth, UInt8 *data)
-{
-    UInt16 t;
-    UInt8 x_offset;
-    t = x/8;
-    x_offset = x % 8;
-    if (((data[y * bytewidth + t]) << x_offset)&0x80)
-    {
-        return 1;
-    }
-    else
-        return 0;
-}
-static mlsErrorCode_t mlsLCDSetPixelBuffer(UInt16 index, UInt16 color)
-{
-	gLCDBuffer[2*index] = color >> 8;
-	gLCDBuffer[2*index + 1] = color & 0xFF;
-	return MLS_SUCCESS;
-}
 static mlsErrorCode_t mlsLCDInitial_ST7789V(void)
 {
     mlsLCDWriteCommandByte(0x11);      //Exit sleep
@@ -415,183 +323,20 @@ mlsErrorCode_t mlsLCDDrawScreen(UInt16 color)
     mlsOsalMutexUnlock(&gLcdMutex);
     return MLS_SUCCESS;
 }
-mlsErrorCode_t mlsLCDDrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color) {
-	/* Code by dewoller: https://github.com/dewoller */
-
-	int16_t dx, dy, sx, sy, err, e2;
-	uint16_t tmp;
-
-	/* Check for overflow */
-	if (x0 >= gLCD_opt.width) {
-		x0 = gLCD_opt.width - 1;
-	}
-	if (x1 >= gLCD_opt.width) {
-		x1 = gLCD_opt.width - 1;
-	}
-	if (y0 >= gLCD_opt.height) {
-		y0 = gLCD_opt.height - 1;
-	}
-	if (y1 >= gLCD_opt.height) {
-		y1 = gLCD_opt.height - 1;
-	}
-
-	/* Check correction */
-	if (x0 > x1) {
-		tmp = x0;
-		x0 = x1;
-		x1 = tmp;
-	}
-	if (y0 > y1) {
-		tmp = y0;
-		y0 = y1;
-		y1 = tmp;
-	}
-
-	dx = x1 - x0;
-	dy = y1 - y0;
-
-	/* Vertical or horizontal line */
-	if (dx == 0 || dy == 0) {
-		mlsLCDFill(x0, y0, x1, y1, color);
-		return MLS_SUCCESS;
-	}
-
-	sx = (x0 < x1) ? 1 : -1;
-	sy = (y0 < y1) ? 1 : -1;
-	err = ((dx > dy) ? dx : -dy) / 2;
-
-	while (1) {
-		mlsLCDDrawPixel(x0, y0, color);
-		if (x0 == x1 && y0 == y1) {
-			break;
-		}
-		e2 = err;
-		if (e2 > -dx) {
-			err -= dy;
-			x0 += sx;
-		}
-		if (e2 < dy) {
-			err += dx;
-			y0 += sy;
-		}
-	}
-	return MLS_SUCCESS;
-}
-mlsErrorCode_t mlsLCDDrawRectangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color)
+static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2)
 {
-	mlsLCDDrawLine(x0, y0, x1, y0, color); //Top
-	mlsLCDDrawLine(x0, y0, x0, y1, color);	//Left
-	mlsLCDDrawLine(x1, y0, x1, y1, color);	//Right
-	mlsLCDDrawLine(x0, y1, x1, y1, color);	//Bottom
-	return MLS_SUCCESS;
-}
-mlsErrorCode_t mlsLCDDrawFilledRectangle(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color) {
-	uint16_t tmp;
+    mlsLCDWriteCommandByte(0x2a);
+    mlsLCDWriteDataByte(x1 >> 8);
+    mlsLCDWriteDataByte(x1 & 0xFF);
+    mlsLCDWriteDataByte(x2 >> 8);
+    mlsLCDWriteDataByte(x2 & 0xFF);
 
-	/* Check correction */
-	if (x0 > x1) {
-		tmp = x0;
-		x0 = x1;
-		x1 = tmp;
-	}
-	if (y0 > y1) {
-		tmp = y0;
-		y0 = y1;
-		y1 = tmp;
-	}
-
-	/* Fill rectangle */
-	mlsLCDFill(x0, y0, x1, y1, color);
-	return MLS_SUCCESS;
-}
-mlsErrorCode_t mlsLCDDrawCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color) {
-	int16_t f = 1 - r;
-	int16_t ddF_x = 1;
-	int16_t ddF_y = -2 * r;
-	int16_t x = 0;
-	int16_t y = r;
-
-    mlsLCDDrawPixel(x0, y0 + r, color);
-    mlsLCDDrawPixel(x0, y0 - r, color);
-    mlsLCDDrawPixel(x0 + r, y0, color);
-    mlsLCDDrawPixel(x0 - r, y0, color);
-
-    while (x < y) {
-        if (f >= 0) {
-            y--;
-            ddF_y += 2;
-            f += ddF_y;
-        }
-        x++;
-        ddF_x += 2;
-        f += ddF_x;
-
-        mlsLCDDrawPixel(x0 + x, y0 + y, color);
-        mlsLCDDrawPixel(x0 - x, y0 + y, color);
-        mlsLCDDrawPixel(x0 + x, y0 - y, color);
-        mlsLCDDrawPixel(x0 - x, y0 - y, color);
-
-        mlsLCDDrawPixel(x0 + y, y0 + x, color);
-        mlsLCDDrawPixel(x0 - y, y0 + x, color);
-        mlsLCDDrawPixel(x0 + y, y0 - x, color);
-        mlsLCDDrawPixel(x0 - y, y0 - x, color);
-    }
+    mlsLCDWriteCommandByte(0x2b);
+    mlsLCDWriteDataByte(y1 >> 8);
+    mlsLCDWriteDataByte(y1 & 0xFF);
+    mlsLCDWriteDataByte(y2 >> 8);
+    mlsLCDWriteDataByte(y2 & 0xFF);
     return MLS_SUCCESS;
-}
-mlsErrorCode_t mlsLCDDrawFilledCircle(int16_t x0, int16_t y0, int16_t r, uint32_t color) {
-	int16_t f = 1 - r;
-	int16_t ddF_x = 1;
-	int16_t ddF_y = -2 * r;
-	int16_t x = 0;
-	int16_t y = r;
-
-	mlsLCDDrawPixel(x0, y0 + r, color);
-	mlsLCDDrawPixel(x0, y0 - r, color);
-	mlsLCDDrawPixel(x0 + r, y0, color);
-	mlsLCDDrawPixel(x0 - r, y0, color);
-	mlsLCDDrawLine(x0 - r, y0, x0 + r, y0, color);
-
-    while (x < y) {
-        if (f >= 0) {
-            y--;
-            ddF_y += 2;
-            f += ddF_y;
-        }
-        x++;
-        ddF_x += 2;
-        f += ddF_x;
-
-        mlsLCDDrawLine(x0 - x, y0 + y, x0 + x, y0 + y, color);
-        mlsLCDDrawLine(x0 + x, y0 - y, x0 - x, y0 - y, color);
-
-        mlsLCDDrawLine(x0 + y, y0 + x, x0 - y, y0 + x, color);
-        mlsLCDDrawLine(x0 + y, y0 - x, x0 - y, y0 - x, color);
-    }
-    return MLS_SUCCESS;
-}
-mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2)
-{
-	UInt16 length;
-
-	UInt16 tmp;
-
-	/* Check correction */
-	if (x1 > x2) {
-		tmp = x1;
-		x1 = x2;
-		x2 = tmp;
-	}
-	if (y1 > y2) {
-		tmp = y1;
-		y1 = y2;
-		y2 = tmp;
-	}
-
-	length = (x2 - x1 +1)*(y2 - y1 +1)*2;
-	mlsLCDSetCursorPosition(x1,y1,x2,y2);
-	mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
-	mlsLCDWriteDataBuffer(gLCDBuffer,length);
-	return MLS_SUCCESS;
 }
 mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation) {
 	mlsLCDWriteCommandByte(LCD_COMMAND_MAC);
@@ -616,258 +361,6 @@ mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation) {
 	}
 	return MLS_SUCCESS;
 }
-
-static Bool mlsGetFontIndex(UInt32 utf8, mlsLcdFontInfo_t *font, UInt16 *index)
-{
-	UInt32 i = 0;
-
-	for (i = 0; i < FONT_SIZE; i++)
-	{
-		if(utf8 == font->fontIndex[i].Utf8Decode)
-		{
-			*index = i;
-			return True;
-		}
-	}
-
-	return False;
-}
-
-static void mlsLCDPutc(UInt16 x, UInt16 y, UInt32 utf8, mlsLcdFontInfo_t *font, UInt16 foreground, UInt16 background)
-{
-    UInt16 i ,t;
-    UInt16 bitwidth;
-    UInt16 ynew;
-    UInt16 xnew;
-    UInt8 bytewidth;
-    gLCDx = x;
-    gLCDy = y;
-
-    UInt16 idx;
-
-    if(mlsGetFontIndex(utf8, font, &idx))
-//    if (((c >= font->firstchar) && (c <= font->lastchar))||((c >= font->firstsymbol) && (c <= font->lastsymbol)))
-    {
-//    	UInt16 idx;
-//    	if ((c >= font->firstchar) && (c <= font->lastchar))
-//    		idx = c - font->firstchar;
-//    	else
-//    		idx = c - font->firstsymbol + font->lastchar - font->firstchar + 1;
-        bitwidth = (UInt16) (font->fontIndex[idx].width);
-        bytewidth = (UInt8) (bitwidth%8 == 0 ? bitwidth/8 : bitwidth/8 + 1);
-        memcpy(gLcddata,&font->fontdata[font->fontIndex[idx].index],(size_t) (bytewidth*font->fontHeight));
-    //    data = font->fontdata + font->fontIndex[(c-32)*2 + 1];
-
-        if ((gLCDx + bitwidth) > gLCD_opt.width) {
-                /* If at the end of a line of display, go to new line and set x to 0 position */
-            gLCDy = (UInt16) (gLCDy + font->fontHeight);
-            gLCDx = 0;
-            }
-            /* Draw font data */
-            for (i = 0; i < font->fontHeight; i++)
-            {
-                for(t = 0; t < bitwidth; t++)
-                {
-                    UInt16 index = (UInt16) (t + i*(bitwidth + LCD_CHAR_SPACE));
-                    if (mlsLcdGetPixel(t,i,bytewidth,gLcddata))
-                    {
-                        mlsLCDSetPixelBuffer(index,foreground);
-                    }
-                    else
-                        mlsLCDSetPixelBuffer(index,background);
-                }
-                for(t = bitwidth; t < (bitwidth + LCD_CHAR_SPACE);t++)
-                {
-                	UInt16 index = (UInt16) (t + i*(bitwidth + LCD_CHAR_SPACE));
-                	mlsLCDSetPixelBuffer(index,background);
-                }
-            }
-    }
-    else
-    {
-        bitwidth = font->fontHeight/3;
-        for(i = 0; i < (bitwidth + LCD_CHAR_SPACE)*font->fontHeight; i++)
-            mlsLCDSetPixelBuffer(i,background);
-    }
-    xnew = (UInt16) (gLCDx + bitwidth + LCD_CHAR_SPACE - 1);
-    ynew = (UInt16) (gLCDy + font->fontHeight - 1);
-    mlsLCDDrawBuffer(gLCDx,gLCDy,xnew ,ynew);
-        /* Set new pointer */
-    gLCDx = (UInt16) (gLCDx + bitwidth + LCD_CHAR_SPACE);
-}
-
-void mlsLCDPuts(UInt16 x, UInt16 y, char *str, mlsLcdFontInfo_t *font, UInt16 foreground, UInt16 background)
-{
-	UInt16 startX = x;
-	UInt32 utf8;
-	int count = 0;
-	int maxCount = 0;
-
-	/* Set X and Y coordinates */
-	gLCDx = x;
-	gLCDy = y;
-
-	while (*str) {
-		/* New line */
-		if (*str == '\n') {
-			gLCDy += font->fontHeight + 1;
-			/* if after \n is also \r, than go to the left of the screen */
-			if (*(str + 1) == '\r') {
-				gLCDx = 0;
-				str++;
-			} else {
-				gLCDx = startX;
-			}
-			str++;
-			continue;
-		} else if (*str == '\r') {
-			str++;
-			continue;
-		}
-		else if(*str >= 0x01 && *str <= 0x7F)
-		{
-			utf8 = *str;
-			str++;
-		}
-		else
-		{
-			utf8 = 0;
-			count = 0;
-			maxCount = 0;
-
-			if((*str & 0xF0) == 0xC0)
-			{
-				maxCount = 2;
-			}
-			else if((*str & 0xF0) == 0xE0)
-			{
-				maxCount = 3;
-			}
-
-			while(!(*str >= 0x01 && *str <= 0x7F) && count < maxCount)
-			{
-				count++;
-				utf8 = utf8 << 8;
-				utf8 |= (UInt32)(*str);
-
-				str++;
-			}
-		}
-
-		/* Put character to LCD */
-		mlsLCDPutc(gLCDx, gLCDy, utf8, font, foreground, background);
-	}
-}
-mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image)
-{
-	UInt16 index, t, m;
-	mlsLCDSetCursorPosition(x,y,x+width -1,y+height -1);
-	mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
-	index = (width*height)/2400;
-	for (t = 0; t < index; t ++)
-	{
-		for(m = 0; m < 2400; m++)
-		{
-			mlsLCDSetPixelBuffer(m,image[t*2400 + m]);
-		}
-		mlsLCDWriteDataBuffer(gLCDBuffer,4800);
-	}
-	if ((width*height%2400)!=0)
-	{
-		for(m = 0; m < width*height - 2400*index;m++)
-		{
-			mlsLCDSetPixelBuffer(m,image[index*2400 + m]);
-		}
-		mlsLCDWriteDataBuffer(gLCDBuffer,(m+1)*2);
-	}
-	return MLS_SUCCESS;
-}
-
-static int GetStringLenUnicodeVi(char* pString)
-{
-	int len = 0;
-
-	while(*pString)
-	{
-		len++;
-		if(*pString >= 0x01 && *pString <= 0x7F)
-		{
-			pString++;
-		}
-		else
-		{
-			if((*pString & 0xF0) == 0xC0)
-			{
-
-				pString += 2;
-			}
-			else if((*pString & 0xF0) == 0xE0)
-			{
-				pString += 3;
-			}
-			else
-			{
-				pString++;
-			}
-		}
-	}
-
-	return len;
-}
-mlsErrorCode_t mlsLcd_LoadString(UInt8 lineNbr, char *pString)
-{
-	mlsErrorCode_t errorCode = MLS_SUCCESS;
-
-	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
-
-	gLcdDataBlock.totalRow ++;
-	gLcdDataBlock.row[lineNbr - 1].dataLen = MLS_MACRO_MIN(GetStringLenUnicodeVi(pString), MAX_CHARACTER_PER_LINE);
-	memset(gLcdDataBlock.row[lineNbr - 1].data, 0, sizeof(gLcdDataBlock.row[lineNbr - 1].data));
-	memcpy(gLcdDataBlock.row[lineNbr - 1].data, pString, MLS_MACRO_MIN(strlen(pString), sizeof(gLcdDataBlock.row[lineNbr - 1].data)));
-
-	mlsOsalMutexUnlock(&gLcdMutex);
-
-	return errorCode;
-}
-mlsErrorCode_t mlsLcd_DisplayString(UInt16 lineMask)
-{
-	mlsErrorCode_t errorCode = MLS_SUCCESS;
-	UInt8 idx;
-	UInt16 mask = lineMask;
-	UInt16 background = LCD_WHITE;
-
-
-	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
-
-	for (idx = 0; idx < sizeof(gLineMask)/ sizeof(gLineMask[0]); idx++)
-	{
-		if ((mask & gLineMask[idx]) == gLineMask[idx])
-		{
-			mask &= ~gLineMask[idx];
-
-			mlsLCDPuts(X_OFFSET,Y_OFFSET + idx*(gLCD_opt.height - Y_OFFSET)/6,
-					(char *)gLcdDataBlock.row[idx].data,
-					&arialNarrow_FontInfo,
-					LCD_BLACK,
-					background);
-		}
-		if (mask  == 0x0000)
-		{
-			break;
-		}
-	}
-
-	gLcdDataBlock.totalRow  = 0;
-	mlsOsalMutexUnlock(&gLcdMutex);
-
-
-
-	return errorCode;
-}
-
-
-
-
 
 void __attribute__ ((noinline))  __attribute__((optimize("-O0")))
 		mlsOsalDelayMs(unsigned int ms)
