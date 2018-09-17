@@ -35,8 +35,7 @@ extern "C"
 #endif
 
 /********** Include section ***************************************************/
-#include "mlsInclude.h"
-#include "../mlsLCD/inc/mlsLCDFont.h"
+#include "mlsLCDFont.h"
 /********** Constant  and compile switch definition section *******************/
 
 /********** Type definition section *******************************************/

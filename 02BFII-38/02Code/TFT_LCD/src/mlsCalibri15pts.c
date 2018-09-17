@@ -2131,11 +2131,16 @@ const mlsLcdFontInfo_t calibri_15ptFontInfo =
 	19, //  Character height
 	'!', //  Start character
 	'~', //  End character
-	32,
-	32,
+	25,
+	31,
 	calibri_15ptDescriptors, //  Character descriptor array
 	calibri_15ptBitmaps, //  Character bitmap array
 };
+
+// Font data for Calibri 15pt
+extern const UInt8 calibri_15ptBitmaps[];
+extern const mlsLcdFontInfo_t calibri_15ptFontInfo;
+extern const UInt16 calibri_15ptDescriptors[];
 
 #ifdef __cplusplus
 }

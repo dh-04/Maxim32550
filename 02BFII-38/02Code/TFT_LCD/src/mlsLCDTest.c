@@ -28,13 +28,13 @@
 #include "mlsLCDDriver.h"
 /********** Local Constant and compile switch definition section **************/
 #include <MAX325xx.h>
+#include "mlsCalibri15pts.h"
+
 /********** Local Type definition section *************************************/
 
 /********** Local Macro definition section ************************************/
 
 /********** Global variable definition section ********************************/
-extern const mlsLcdFontInfo_t calibri_15ptFontInfo;
-
 /********** Local (static) variable definition section ************************/
 
 /********** Local (static) function declaration section ***********************/
@@ -47,17 +47,13 @@ mlsErrorCode_t mlsLCDTestMain()
 {
 	mlsErrorCode_t errorCode = MLS_SUCCESS;
 
-	mlsLCDDrawScreen(LCD_GREEN_TITLE_BAR);
-	mlsOsalDelayMs(500);
-	mlsLCDDrawScreen(LCD_BLUE);
-	mlsOsalDelayMs(500);
-	mlsLCDDrawScreen(LCD_GREEN);
-	mlsOsalDelayMs(500);
-	mlsLCDDrawScreen(LCD_RED);
-	mlsOsalDelayMs(500);
 	mlsLCDDrawScreen(LCD_WHITE);
-
-	mlsLCDPuts(7, 105, "STYL SOLUTIONS PTE .LTD", (mlsLcdFontInfo_t *)&calibri_15ptFontInfo, LCD_BLACK, LCD_WHITE, 5);
+	mlsOsalDelayMs(1000);
+	mlsLcd_LoadString(1, "Truong cute :D :D :D");
+	mlsLcd_LoadString(2, "Truong cute :D :D :D");
+	mlsLcd_DisplayString(1);
+	mlsLcd_DisplayString(2);
+	mlsLcd_DisplayString(4);
 	mlsOsalDelayMs(5000);
 
 	return errorCode;

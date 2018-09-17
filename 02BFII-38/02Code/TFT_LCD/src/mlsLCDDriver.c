@@ -23,7 +23,7 @@
 #define LCD_CS_PIN			28
 #define LCD_CS_PORT			MML_GPIO_DEV0
 #define LCD_SPI_DEVID		MML_SPI_DEV1
-#define LCD_COMMAND_GRAM	0x2C
+#define LCD_COMMAND_GRAM	0x2C //transfer data data from MCU to frame memory
 #define LCD_COMMAND_MAC		0x36
 #define LCD_CHAR_SPACE		5
 #define X_OFFSET			10
@@ -39,14 +39,18 @@
 
 #define LCD_CLR_CS() 	(mml_gpio_write_bit_pattern(LCD_CS_PORT, LCD_CS_PIN, 1, 0))
 #define LCD_SET_CS()     (mml_gpio_write_bit_pattern(LCD_CS_PORT, LCD_CS_PIN, 1, 1))
+
+UInt8 gLCDBuffer[4800];
+
 typedef enum {
 	LCDLandscape,
 	LCDPortrait
 } mlsLCD_Orientation;
+
 typedef struct {
 	UInt16 width;
 	UInt16 height;
-	UInt8 orientation; // 1 = portrait; 0 = landscape
+	UInt8 orientation; // 1 = portrait; 0 = landscape ???
 } mlsLCDOptions_t;
 
 mlsLCDOptions_t gLCD_opt;
@@ -224,6 +228,7 @@ static mlsErrorCode_t mlsLCDWriteDataBuffer(UInt8 *buffer, UInt16 length)
 	LCD_SET_CS() ;
 	return MLS_SUCCESS;
 }
+
 static mlsErrorCode_t mlsLCDDrawPixel(UInt16 x, UInt16 y, UInt16 color)
 {
     mlsLCDSetCursorPosition(x, y, x, y);
@@ -360,14 +365,37 @@ void mlsDelay(int microSecond)
 	int i = microSecond*5;
 	for(;i > 0; i--);
 }
-mlsErrorCode_t mlsLCDDrawScreen(UInt16 color)
+static mlsErrorCode_t mlsLCDFill(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2,UInt16 color)
 {
-    UInt32 i;
-    mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
-    for(i = 0; i < 2400; i++)
+	Int16 count;
+	UInt32 i;
+
+	count = (Int16)(x2 - x1 + 1)*(y2 - y1 + 1)*2;
+
+    for(i = 0; i < count; i++)
     {
         gLCDBuffer[2*i] =   (uint8_t) (color >> 8);
         gLCDBuffer[2*i+1] = (uint8_t) color & 0xFF;
+    }
+    mlsLCDSetCursorPosition(x1,y1,x2,y2);
+    mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
+
+    while(count > 0)
+    {
+    	mlsLCDWriteDataBuffer(gLCDBuffer,count < 4800 ? count : 4800);
+    	mlsDelay(2000);
+    	count = count - 4800;
+    }
+    return MLS_SUCCESS;
+}
+mlsErrorCode_t mlsLCDDrawScreen(UInt16 color)
+{
+    UInt32 i;
+//    mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
+    for(i = 0; i < 2400; i++)
+    {
+        gLCDBuffer[2*i] =   (uint8_t) (~color >> 8);
+        gLCDBuffer[2*i+1] = (uint8_t) ~color & 0xFF;
     }
     mlsLCDSetCursorPosition(0,0,gLCD_opt.width -1,gLCD_opt.height - 1);
     mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
@@ -377,8 +405,70 @@ mlsErrorCode_t mlsLCDDrawScreen(UInt16 color)
     	mlsLCDWriteDataBuffer(gLCDBuffer,4800);
     }
 
-    mlsOsalMutexUnlock(&gLcdMutex);
+//    mlsOsalMutexUnlock(&gLcdMutex);
     return MLS_SUCCESS;
+}
+mlsErrorCode_t mlsLCDDrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint32_t color) {
+	/* Code by dewoller: https://github.com/dewoller */
+
+	int16_t dx, dy, sx, sy, err, e2;
+	uint16_t tmp;
+
+	/* Check for overflow */
+	if (x0 >= gLCD_opt.width) {
+		x0 = gLCD_opt.width - 1;
+	}
+	if (x1 >= gLCD_opt.width) {
+		x1 = gLCD_opt.width - 1;
+	}
+	if (y0 >= gLCD_opt.height) {
+		y0 = gLCD_opt.height - 1;
+	}
+	if (y1 >= gLCD_opt.height) {
+		y1 = gLCD_opt.height - 1;
+	}
+
+	/* Check correction */
+	if (x0 > x1) {
+		tmp = x0;
+		x0 = x1;
+		x1 = tmp;
+	}
+	if (y0 > y1) {
+		tmp = y0;
+		y0 = y1;
+		y1 = tmp;
+	}
+
+	dx = x1 - x0;
+	dy = y1 - y0;
+
+	/* Vertical or horizontal line */
+	if (dx == 0 || dy == 0) {
+		mlsLCDFill(x0, y0, x1, y1, color);
+		return MLS_SUCCESS;
+	}
+
+	sx = (x0 < x1) ? 1 : -1;
+	sy = (y0 < y1) ? 1 : -1;
+	err = ((dx > dy) ? dx : -dy) / 2;
+
+	while (1) {
+		mlsLCDDrawPixel(x0, y0, color);
+		if (x0 == x1 && y0 == y1) {
+			break;
+		}
+		e2 = err;
+		if (e2 > -dx) {
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dy) {
+			err += dx;
+			y0 += sy;
+		}
+	}
+	return MLS_SUCCESS;
 }
 static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2)
 {
@@ -507,7 +597,7 @@ void mlsLCDPuts(UInt16 x, UInt16 y,
 		char *str, mlsLcdFontInfo_t *font,
 		UInt16 foreground, UInt16 background, UInt16 space)
 {
-	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
+//	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
 
 	UInt16 startX = x;
 
@@ -540,11 +630,245 @@ void mlsLCDPuts(UInt16 x, UInt16 y,
 	mlsOsalMutexUnlock(&gLcdMutex);
 }
 
+mlsErrorCode_t mlsLCDDrawFilledCircle(UInt16 x0, UInt16 y0, UInt16 r, UInt32 color)
+{
+	int16_t f = 1 - r;
+	int16_t ddF_x = 1;
+	int16_t ddF_y = -2 * r;
+	int16_t x = 0;
+	int16_t y = r;
+
+	mlsLCDDrawPixel(x0, y0 + r, color);
+	mlsLCDDrawPixel(x0, y0 - r, color);
+	mlsLCDDrawPixel(x0 + r, y0, color);
+	mlsLCDDrawPixel(x0 - r, y0, color);
+	mlsLCDDrawLine(x0 - r, y0, x0 + r, y0, color);
+
+    while (x < y) {
+        if (f >= 0) {
+            y--;
+            ddF_y += 2;
+            f += ddF_y;
+        }
+        x++;
+        ddF_x += 2;
+        f += ddF_x;
+
+        mlsLCDDrawLine(x0 - x, y0 + y, x0 + x, y0 + y, color);
+        mlsLCDDrawLine(x0 + x, y0 - y, x0 - x, y0 - y, color);
+
+        mlsLCDDrawLine(x0 + y, y0 + x, x0 - y, y0 + x, color);
+        mlsLCDDrawLine(x0 + y, y0 - x, x0 - y, y0 - x, color);
+    }
+    return MLS_SUCCESS;
+}
+
+mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image)
+{
+	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
+
+	UInt16 index, t, m;
+	mlsLCDSetCursorPosition(x,y,x+width -1,y+height -1);
+	mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
+	index = (width*height)/2400;
+	for (t = 0; t < index; t ++)
+	{
+		for(m = 0; m < 2400; m++)
+		{
+			mlsLCDSetPixelBuffer(m,image[t*2400 + m]);
+		}
+		mlsLCDWriteDataBuffer(gLCDBuffer,4800);
+	}
+	if ((width*height%2400)!=0)
+	{
+		for(m = 0; m < width*height - 2400*index;m++)
+		{
+			mlsLCDSetPixelBuffer(m,image[index*2400 + m]);
+		}
+		mlsLCDWriteDataBuffer(gLCDBuffer,(m+1)*2);
+	}
+
+	mlsOsalMutexUnlock(&gLcdMutex);
+
+	return MLS_SUCCESS;
+}
+
+mlsErrorCode_t mlsLcd_LoadString(UInt8 lineNbr, char *pString)
+{
+	mlsErrorCode_t errorCode = MLS_SUCCESS;
+
+//	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
+
+	gLcdDataBlock.totalRow ++;
+	gLcdDataBlock.row[lineNbr - 1].dataLen = MLS_MACRO_MIN(strlen(pString), 19);
+	memset(gLcdDataBlock.row[lineNbr - 1].data,32, 19);
+	memcpy(gLcdDataBlock.row[lineNbr - 1].data,
+			pString, MLS_MACRO_MIN(strlen(pString), 19));
+
+//	mlsOsalMutexUnlock(&gLcdMutex);
+
+	return errorCode;
+}
+
+mlsErrorCode_t mlsLcd_DisplayString(UInt16 lineMask)
+{
+	mlsErrorCode_t errorCode = MLS_SUCCESS;
+	UInt8 idx;
+	UInt16 mask = lineMask;
+	UInt16 background = LCD_BACKGROUND_COLOR/*LCD_WHITE*/;
+
+//	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
+
+	for (idx = 0; idx < sizeof(gLineMask)/ sizeof(gLineMask[0]); idx++)
+	{
+		if ((mask & gLineMask[idx]) == gLineMask[idx])
+		{
+			mask &= ~gLineMask[idx];
+
+			mlsLCDPuts(X_OFFSET,Y_OFFSET + idx*(gLCD_opt.height - Y_OFFSET)/4,
+					(char *)gLcdDataBlock.row[idx].data,
+					&Arial_16,
+					LCD_BLACK,
+					background, 5);
+		}
+		if (mask  == 0x0000)
+		{
+			break;
+		}
+	}
+
+	gLcdDataBlock.totalRow  = 0;
+//	mlsOsalMutexUnlock(&gLcdMutex);
 
 
+	return errorCode;
+}
+mlsErrorCode_t mlsLCDDisplayRawQRCode(Int8 * szSourceSring,mlsLcdAlign_t align)
+{
+	UInt8 x,y,i,t;
+	UInt8 x1 = 0, x2 = 0;
+	Int32 width;
+	UInt8 scale;
+	UInt8 QRCodeBufeer[4410];
 
+	mlsGenerateQRCode(&width,QRCodeBufeer,szSourceSring);
+	scale = LCD_HEIGHT/(2*width);
+	switch(align)
+	{
+	case LEFT:
+		x1 = gLCD_opt.width/4 - width*scale/2;
+		x2 = width*scale - 1 + x1;
+		break;
+	case RIGHT:
+		x1 = 3*gLCD_opt.width/4 - width*scale/2;
+		x2 = width*scale - 1 + x1;
+		break;
+	case CENTER:
+		x1 = (gLCD_opt.width - width*scale)/2;
+		x2 = width*scale - 1 + x1;
+		break;
+	default:
+		break;
+	}
+	for(y = 0; y < width; y++)
+	{
+		for(x = 0; x < width; x++)
+		{
+			if (QRCodeBufeer[y*width + x] & 1)
+			{
+				for(i = 0;i < scale; i++)
+				{
+					for(t = 0;t < scale; t++)
+					{
+						mlsLCDSetPixelBuffer(x*scale + i +  t*scale*width,LCD_BLACK);
+					}
+				}
+			}
+			else
+			{
+				for(i = 0;i < scale; i++)
+				{
+					for(t = 0;t < scale; t++)
+					{
+						mlsLCDSetPixelBuffer(x*scale + i +  t*scale*width,LCD_BACKGROUND_COLOR/*LCD_WHITE*/);
+					}
+				}
+			}
+		}
+		mlsLCDDrawBuffer(x1,y*scale + (gLCD_opt.height - width*scale)/2,x2,(y + 1)*scale - 1 + (gLCD_opt.height - width*scale)/2);
+	}
+	return MLS_SUCCESS;
+}
 
+mlsErrorCode_t mlsLCDDisplayCustomQRCode(Int8 * szSourceSring)
+{
+	UInt8 x,y,i,t;
+	UInt8 x1, x2;
+	Int32 width;
+	UInt8 scale;
+	UInt8 QRCodeBufeer[4410];
+	const UInt32 MAX_RESOLUTION = 190;
 
+	mlsGenerateQRCode(&width,QRCodeBufeer,szSourceSring);
+	scale = MAX_RESOLUTION/width;
 
+	x1 = 105 - width*scale/2;
+	x2 = width*scale - 1 + x1;
 
+	for(y = 0; y < width; y++)
+	{
+		for(x = 0; x < width; x++)
+		{
+			if (QRCodeBufeer[y*width + x] & 1)
+			{
+				for(i = 0;i < scale; i++)
+				{
+					for(t = 0;t < scale; t++)
+					{
+						mlsLCDSetPixelBuffer(x*scale + i +  t*scale*width,LCD_BLACK);
+					}
+				}
+			}
+			else
+			{
+				for(i = 0;i < scale; i++)
+				{
+					for(t = 0;t < scale; t++)
+					{
+						mlsLCDSetPixelBuffer(x*scale + i +  t*scale*width,LCD_BACKGROUND_COLOR/*LCD_WHITE*/);
+					}
+				}
+			}
+		}
+		mlsLCDDrawBuffer(x1,y*scale + (gLCD_opt.height - width*scale)/2,x2,(y + 1)*scale - 1 + (gLCD_opt.height - width*scale)/2);
+	}
+	return MLS_SUCCESS;
+}
 
+mlsErrorCode_t mlsLCDDisplayQRText(Int8 * SourceSring,
+									char *line1,
+									char *line2,
+									char *line3,
+									char *line4)
+{
+	mlsErrorCode_t err = MLS_SUCCESS;
+	char Line1[20] = "          ";
+	char Line2[20] = "          ";
+	char Line3[20] = "          ";
+	char Line4[20] = "          ";
+
+	memcpy(&Line1[10], line1, MLS_MACRO_MIN(strlen(line1), 10));
+	memcpy(&Line2[10], line2, MLS_MACRO_MIN(strlen(line2), 10));
+	memcpy(&Line3[10], line3, MLS_MACRO_MIN(strlen(line3), 10));
+	memcpy(&Line4[10], line4, MLS_MACRO_MIN(strlen(line4), 10));
+
+	mlsLcd_LoadString(1,Line1);
+	mlsLcd_LoadString(2,Line2);
+	mlsLcd_LoadString(3,Line3);
+	mlsLcd_LoadString(4,Line4);
+
+	mlsLcd_DisplayString(LINE1|LINE2|LINE3|LINE4);
+	mlsLCDDisplayRawQRCode(SourceSring,LEFT);
+
+	return err;
+}
