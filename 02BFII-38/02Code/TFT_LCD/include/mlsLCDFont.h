@@ -30,42 +30,28 @@
 #define __MLSLCDFONT_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern C {
 #endif
 
-#include <string.h>
+#include "string.h"
 #include "Type.h"
 
 #define MAX_NUM_IMAGE 50
 
-typedef struct __attribute__ ((packed))
-{
-	UInt32 Utf8Decode;
-	UInt8 width;
-	UInt16 index;
-}mlsFontIndex_t;
-
-//typedef struct mlsLcdFontInfo
-//{
-//	UInt16 fontHeight;
-//	UInt8 firstchar;
-//	UInt8 lastchar;
-//	UInt8 firstsymbol;
-//	UInt8 lastsymbol;
-//	const UInt16 *fontIndex;
-//	const UInt8 *fontdata;
-//}mlsLcdFontInfo_t;
-
 typedef struct mlsLcdFontInfo
 {
 	UInt16 fontHeight;
-	const mlsFontIndex_t *fontIndex;
+	UInt8 firstchar;
+	UInt8 lastchar;
+	UInt8 firstsymbol;
+	UInt8 lastsymbol;
+	const UInt16 *fontIndex;
 	const UInt8 *fontdata;
 }mlsLcdFontInfo_t;
 
 typedef struct __attribute__ ((packed))
 {
-	char name[20];
+//	char name[20];
 	UInt16 width;
 	UInt16 height;
 }mlsImage_t;
@@ -78,8 +64,8 @@ typedef struct __attribute__ ((packed))
 	UInt32	address[MAX_NUM_IMAGE];
 }mlsLcdImageInfo_t;
 
-extern mlsLcdFontInfo_t arialNarrow_FontInfo;
-extern UInt32 FONT_SIZE;
+
+extern mlsLcdFontInfo_t Arial_16;
 
 /* C++ detection */
 #ifdef __cplusplus

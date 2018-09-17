@@ -74,6 +74,11 @@ static const UInt16 gLineMask[] =
 	(UInt16) LINE6,
 };
 /**
+ * @fn mlsLCDSetCursorPosition
+ * @brief This function set the coordinate to write data to LCD
+ */
+static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2);
+/**
  * @fn mlsLCDInitial_ST7789
  * @brief This function send command byte to initialize LCD
  */
@@ -98,10 +103,36 @@ static mlsErrorCode_t mlsLCDWriteDataByte(UInt8 data);
  * @brief This function write many bytes of data
  */
 static mlsErrorCode_t mlsLCDWriteDataBuffer(UInt8 *buffer, UInt16 length);
-
+/**
+ * @fn mlsLCDWriteDataBuffer
+ * @brief This function write many bytes of data
+ */
 mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation);
+/**
+ * @fn mlsLCDPutc
+ * @brief This function write a character from font
+ */
+static void mlsLCDPutc(UInt16 x, UInt16 y,
+		char c, mlsLcdFontInfo_t *font,
+		UInt16 foreground, UInt16 background, UInt16 space);
+
 void mlsDelay(int microSecond);
-static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, UInt16 y2);
+
+void __attribute__ ((noinline))  __attribute__((optimize("-O0")))
+		mlsOsalDelayMs(unsigned int ms)
+{
+    int i = ms*5000;
+    unsigned int systemfreq = 0;
+    mml_get_system_frequency(&systemfreq);
+
+    i /= (MML_SYSTEM_FREQUENCY_108_MHZ/systemfreq);
+
+    for (; i > 0 ; i--)
+         __asm volatile ("nop\n");
+}
+
+
+
 mlsErrorCode_t mlsLCDInit(void)
 {
 	mlsErrorCode_t errCode = MLS_SUCCESS;
@@ -193,7 +224,33 @@ static mlsErrorCode_t mlsLCDWriteDataBuffer(UInt8 *buffer, UInt16 length)
 	LCD_SET_CS() ;
 	return MLS_SUCCESS;
 }
-
+static mlsErrorCode_t mlsLCDDrawPixel(UInt16 x, UInt16 y, UInt16 color)
+{
+    mlsLCDSetCursorPosition(x, y, x, y);
+    mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
+    mlsLCDWriteDataByte(color >> 8);
+    mlsLCDWriteDataByte(color & 0xFF);
+    return MLS_SUCCESS;
+}
+UInt8 mlsLcdGetPixel(UInt16 x, UInt16 y, UInt8 bytewidth, UInt8 *data)
+{
+    UInt16 t;
+    UInt8 x_offset;
+    t = x/8;
+    x_offset = x % 8;
+    if (((data[y * bytewidth + t]) << x_offset)&0x80)
+    {
+        return 1;
+    }
+    else
+        return 0;
+}
+static mlsErrorCode_t mlsLCDSetPixelBuffer(UInt16 index, UInt16 color)
+{
+	gLCDBuffer[2*index] = color >> 8;
+	gLCDBuffer[2*index + 1] = color & 0xFF;
+	return MLS_SUCCESS;
+}
 static mlsErrorCode_t mlsLCDInitial_ST7789V(void)
 {
     mlsLCDWriteCommandByte(0x11);      //Exit sleep
@@ -338,6 +395,30 @@ static mlsErrorCode_t mlsLCDSetCursorPosition(UInt16 x1, UInt16 y1, UInt16 x2, U
     mlsLCDWriteDataByte(y2 & 0xFF);
     return MLS_SUCCESS;
 }
+mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2)
+{
+	UInt16 length;
+
+	UInt16 tmp;
+
+	/* Check correction */
+	if (x1 > x2) {
+		tmp = x1;
+		x1 = x2;
+		x2 = tmp;
+	}
+	if (y1 > y2) {
+		tmp = y1;
+		y1 = y2;
+		y2 = tmp;
+	}
+
+	length = (x2 - x1 +1)*(y2 - y1 +1)*2;
+	mlsLCDSetCursorPosition(x1,y1,x2,y2);
+	mlsLCDWriteCommandByte(LCD_COMMAND_GRAM);
+	mlsLCDWriteDataBuffer(gLCDBuffer,length);
+	return MLS_SUCCESS;
+}
 mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation) {
 	mlsLCDWriteCommandByte(LCD_COMMAND_MAC);
 	if (orientation == Portrait_1) {
@@ -362,20 +443,102 @@ mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation) {
 	return MLS_SUCCESS;
 }
 
-void __attribute__ ((noinline))  __attribute__((optimize("-O0")))
-		mlsOsalDelayMs(unsigned int ms)
+static void mlsLCDPutc(UInt16 x, UInt16 y,
+			char c, mlsLcdFontInfo_t *font,
+			UInt16 foreground, UInt16 background, UInt16 space)
 {
-    int i = ms*5000;
-    unsigned int systemfreq = 0;
-    mml_get_system_frequency(&systemfreq);
+    UInt16 i ,t;
+    UInt16 bitwidth;
+    UInt16 ynew;
+    UInt16 xnew;
+    UInt8 bytewidth;
+    gLCDx = x;
+    gLCDy = y;
+    if (((c >= font->firstchar) && (c <= font->lastchar))||((c >= font->firstsymbol) && (c <= font->lastsymbol)))
+    {
+    	UInt16 idx;
+    	if ((c >= font->firstchar) && (c <= font->lastchar))
+    		idx = c - font->firstchar;
+    	else
+    		idx = c - font->firstsymbol + font->lastchar - font->firstchar + 1;
+        bitwidth = (UInt16) (font->fontIndex[idx*2]);
+        bytewidth = (UInt8) (bitwidth%8 == 0 ? bitwidth/8 : bitwidth/8 + 1);
+        memcpy(gLcddata,font->fontdata + font->fontIndex[idx*2 + 1],(size_t) (bytewidth*font->fontHeight));
 
-    i /= (MML_SYSTEM_FREQUENCY_108_MHZ/systemfreq);
-
-    for (; i > 0 ; i--)
-         __asm volatile ("nop\n");
+        if ((gLCDx + bitwidth) > gLCD_opt.width) {
+                /* If at the end of a line of display, go to new line and set x to 0 position */
+            gLCDy = (UInt16) (gLCDy + font->fontHeight);
+            gLCDx = 0;
+            }
+            /* Draw font data */
+            for (i = 0; i < font->fontHeight; i++)
+            {
+                for(t = 0; t < bitwidth; t++)
+                {
+                    UInt16 index = (UInt16) (t + i*(bitwidth + space));
+                    if (mlsLcdGetPixel(t,i,bytewidth,gLcddata))
+                    {
+                        mlsLCDSetPixelBuffer(index,foreground);
+                    }
+                    else
+                        mlsLCDSetPixelBuffer(index,background);
+                }
+                for(t = bitwidth; t < (bitwidth + space);t++)
+                {
+                	UInt16 index = (UInt16) (t + i*(bitwidth + space));
+                	mlsLCDSetPixelBuffer(index,background);
+                }
+            }
+    }
+    else
+    {
+        bitwidth = font->fontHeight/3;
+        for(i = 0; i < (bitwidth + space)*font->fontHeight; i++)
+            mlsLCDSetPixelBuffer(i,background);
+    }
+    xnew = (UInt16) (gLCDx + bitwidth + space - 1);
+    ynew = (UInt16) (gLCDy + font->fontHeight - 1);
+    mlsLCDDrawBuffer(gLCDx,gLCDy,xnew ,ynew);
+        /* Set new pointer */
+    gLCDx = (UInt16) (gLCDx + bitwidth + space);
 }
 
+void mlsLCDPuts(UInt16 x, UInt16 y,
+		char *str, mlsLcdFontInfo_t *font,
+		UInt16 foreground, UInt16 background, UInt16 space)
+{
+	mlsOsalMutexLock(&gLcdMutex, MLS_OSAL_MAX_DELAY);
 
+	UInt16 startX = x;
+
+	/* Set X and Y coordinates */
+	gLCDx = x;
+	gLCDy = y;
+
+	while (*str) {
+		/* New line */
+		if (*str == '\n') {
+			gLCDy += font->fontHeight + 1;
+			/* if after \n is also \r, than go to the left of the screen */
+			if (*(str + 1) == '\r') {
+				gLCDx = 0;
+				str++;
+			} else {
+				gLCDx = startX;
+			}
+			str++;
+			continue;
+		} else if (*str == '\r') {
+			str++;
+			continue;
+		}
+
+		/* Put character to LCD */
+		mlsLCDPutc(gLCDx, gLCDy, *str++, font, foreground, background, space);
+	}
+
+	mlsOsalMutexUnlock(&gLcdMutex);
+}
 
 
 

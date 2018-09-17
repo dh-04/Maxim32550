@@ -47,7 +47,7 @@ mlsErrorCode_t mlsLCDTestMain()
 {
 	mlsErrorCode_t errorCode = MLS_SUCCESS;
 
-	mlsLCDDrawScreen(LCD_BLACK);
+	mlsLCDDrawScreen(LCD_GREEN_TITLE_BAR);
 	mlsOsalDelayMs(500);
 	mlsLCDDrawScreen(LCD_BLUE);
 	mlsOsalDelayMs(500);
@@ -57,7 +57,7 @@ mlsErrorCode_t mlsLCDTestMain()
 	mlsOsalDelayMs(500);
 	mlsLCDDrawScreen(LCD_WHITE);
 
-	//mlsLCDPuts(7, 105, "STYL SOLUTIONS PTE .LTD", (mlsLcdFontInfo_t *)&calibri_15ptFontInfo, LCD_BLACK, LCD_WHITE, 5);
+	mlsLCDPuts(7, 105, "STYL SOLUTIONS PTE .LTD", (mlsLcdFontInfo_t *)&calibri_15ptFontInfo, LCD_BLACK, LCD_WHITE, 5);
 	mlsOsalDelayMs(5000);
 
 	return errorCode;

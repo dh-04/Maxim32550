@@ -65,7 +65,6 @@ int main(void)
 {
  	/* Infinite loop */
 	mlsLCDInit();
-
 	mlsLCDTestMain();
  	while (1) {
 	}
