@@ -65,10 +65,14 @@ typedef void
 (* const pHandler)(void);
 
 // ----------------------------------------------------------------------------
-
+extern void xPortPendSVHandler( void );
+extern void xPortSysTickHandler( void );
+extern void vPortSVCHandler( void );
 // The vector table.
 // This relies on the linker script to place at correct location in memory.
-
+//#define vPortSVCHandler 	SVCall_Handler
+//#define xPortPendSVHandler 	PendSV_Handler
+//#define xPortSysTickHandler SysTick_Handler
 __attribute__ ((section(".isr_vector"),used))
 pHandler g_pfnVectors[] =
   {
@@ -84,11 +88,11 @@ pHandler g_pfnVectors[] =
       0,                                        // Reserved
       0,                                        // Reserved
       0,                                        // Reserved
-      SVC_Handler,                              // SVCall handler
+	  vPortSVCHandler,                              // SVCall handler
       DebugMon_Handler,                         // Debug monitor handler
       0, // Reserved
-      PendSV_Handler, // The PendSV handler
-      SysTick_Handler, // The SysTick handler
+	  xPortPendSVHandler, // The PendSV handler
+	  xPortSysTickHandler, // The SysTick handler
 
 	  /* -------------------     MAX32550 IP IRQ  ----------------------------------*/
 	  PWF_IRQHandler, 		/* Power Fail */

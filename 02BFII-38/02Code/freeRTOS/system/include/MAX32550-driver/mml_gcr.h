@@ -42,7 +42,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include "system_MAX32550.h"
+#include "MAX32550.h"
 /** @defgroup MML_GCR GCR Driver
  *
  * @ingroup MML_Drivers

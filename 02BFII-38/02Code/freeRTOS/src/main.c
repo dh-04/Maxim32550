@@ -74,7 +74,7 @@
 int one = 0;
 int two = 0;
 
-void vTask1( void *pvParameters );
+void vTask1(void *pvParameters );
 void vTask2(void *pvParameters );
 
 
@@ -96,8 +96,8 @@ loop_delay(unsigned int ms)
 int main(void)
 {
 	/* Infinite loop */
-	xTaskCreate( vTask2, "Task 2",10, NULL, 1,NULL );
-	xTaskCreate( vTask1, "Task 1",10, NULL, 1,NULL );
+	xTaskCreate( vTask2, "Task 2",100, NULL, 1,NULL );
+	xTaskCreate( vTask1, "Task 1",100, NULL, 1,NULL );
 
 	vTaskStartScheduler();
 
@@ -110,6 +110,7 @@ void vTask1( void *pvParameters )
 	for( ;; )
 	{
 		one++;
+		loop_delay(500);
 	}
 }
 
@@ -118,6 +119,7 @@ void vTask2( void *pvParameters )
 	for( ;; )
 	{
 		two++;
+		loop_delay(1000);
 	}
 }
 
