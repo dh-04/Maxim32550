@@ -92,6 +92,8 @@
     extern uint32_t SystemCoreClock;
 #endif
 
+#define configUSE_TRACE_FACILITY 								 1
+
 #define configUSE_PREEMPTION                     1
 #define configSUPPORT_STATIC_ALLOCATION          0
 #define configSUPPORT_DYNAMIC_ALLOCATION         1
@@ -168,3 +170,8 @@ standard names. */
 /* USER CODE END Defines */ 
 
 #endif /* FREERTOS_CONFIG_H */
+
+/* Integrates the Tracealyzer recorder with FreeRTOS */
+#if ( configUSE_TRACE_FACILITY == 1 )
+#include "trcRecorder.h"
+#endif

@@ -324,6 +324,8 @@ int mml_spi_ioctl(mml_spi_dev_t devnum, mml_spi_config_t cmd, void* p_data);
 
 /** @} *//* @defgroup MML_SPI */
 
+int mml_spi_read_write(mml_spi_dev_t devnum, unsigned char *data_in,
+						unsigned char *data_out, unsigned int length);
 #ifdef __cplusplus
 }
 #endif

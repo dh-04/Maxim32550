@@ -763,12 +763,13 @@ ARM Macro Assembler    Page 12
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
 erwork --depend=trace_freertos\startup_stm32f411xe.d -otrace_freertos\startup_s
-tm32f411xe.o -I..\\Inc -I.\RTE\_trace_freeRTOS -I"C:\Program Files\Keil_v5\ARM\
-PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include" -I"C:\Program Files\Keil_v5\ARM\PACK\K
-eil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include" --predefine
-="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 526" --predefine="_RTE
-_ SETA 1" --predefine="STM32F411xE SETA 1" --list=startup_stm32f411xe.lst start
-up_stm32f411xe.s
+tm32f411xe.o -I..\\Inc -I.\RTE\Compiler -I.\RTE\_trace_freeRTOS -I"C:\Program F
+iles\Keil_v5\ARM\PACK\ARM\CMSIS\5.4.0\CMSIS\Core\Include" -I"C:\Program Files\K
+eil_v5\ARM\PACK\Keil\ARM_Compiler\1.6.0\Include" -I"C:\Program Files\Keil_v5\AR
+M\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include" --p
+redefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSION SETA 526" --predefi
+ne="_RTE_ SETA 1" --predefine="STM32F411xE SETA 1" --list=startup_stm32f411xe.l
+st startup_stm32f411xe.s
 
 
 

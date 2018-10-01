@@ -71,7 +71,11 @@
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1930545954" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.88566599" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;../include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../src/mlsOsal/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../src/mlsLCD/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../src/Source/portable&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../src/mlsQRCodeDisplay/inc&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;../src/mlsQRCode/inc&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../src/mlsOsal/freeRTOS/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../src/mlsOsal/freeRTOS/portable&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;../src/Source/include&quot;"/>

@@ -58,7 +58,7 @@
 /* Private variables ---------------------------------------------------------*/
 int one = 0;
 int two = 0;
-
+QueueHandle_t xQueue;
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -67,9 +67,10 @@ int two = 0;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-void StartDefaultTask(void const * argument);
 
 void vTask( void *pvParameters );
+static void vSenderTask(void *pvParamenter);
+static void vReceiverTask(void *pvParamenter);
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 
@@ -90,14 +91,22 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
   MX_GPIO_Init();
-
-	xTaskCreate( vTask, "Task 1", 1000, &one, 1, NULL );
-	xTaskCreate( vTask, "Task 2", 1000, &two, 1, NULL );
-
+	
+	xQueue = xQueueCreate( 5, sizeof(long));
+	if( xQueue != NULL )
+{
+	xTaskCreate( vSenderTask, "Sender1", 1000, ( void * ) 100, 1, NULL );
+	xTaskCreate( vSenderTask, "Sender2", 1000, ( void * ) 200, 1, NULL );
+	xTaskCreate( vReceiverTask, "Receiver", 1000, NULL, 2, NULL );
+	
 	vTaskStartScheduler();
-
-
-  while (1)
+}
+else
+{
+/* The queue could not be created. */
+}
+	
+	while (1)
   {
 
   }
@@ -233,19 +242,45 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   /* USER CODE END Callback 1 */
 }
-void vTask( void *pvParameters )
+static void vSenderTask(void *pvParamenter)
 {
-	int *piParameters;
-	TickType_t xLastWakeTime;
+	int32_t lValueToSend;
+	BaseType_t xStatus;
 	
-	piParameters = (int *)pvParameters;
-	xLastWakeTime = xTaskGetTickCount();
-	for( ;; )
+	lValueToSend = (int32_t)pvParamenter;
+	while(1)
 	{
-		(*piParameters)++;
-		vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(1000));
+		xStatus = xQueueSendToBack(xQueue, &lValueToSend, 0);
+		
+		if( xStatus != pdPASS )
+		{
+			
+		}
 	}
 }
+
+static void vReceiverTask(void *pvParamenter)
+{
+	int32_t lReceivedValue;
+	BaseType_t xStatus;
+	const TickType_t xTickToWait = pdMS_TO_TICKS( 100 );
+	
+	for( ;; )
+	{
+		if( uxQueueMessagesWaiting( xQueue ) != 0)
+		{
+		}
+		xStatus = xQueueReceive(xQueue, &lReceivedValue, xTickToWait);
+		
+		if( xStatus == pdPASS )
+		{
+		}
+		else
+		{
+		}
+	}
+}
+	
 /**
   * @brief  This function is executed in case of error occurrence.
   * @param  file: The file name as string.

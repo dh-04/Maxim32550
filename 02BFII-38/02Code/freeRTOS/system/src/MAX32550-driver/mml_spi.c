@@ -614,6 +614,40 @@ const char * mml_spi_get_version(void) {
 	return MML_SPI_VERSION_STRING;
 }
 
+int mml_spi_read_write(mml_spi_dev_t devnum, unsigned char *data_in,
+						unsigned char *data_out, unsigned int length)
+{
+	unsigned int	size = length;
+	unsigned char 	*ptr = (unsigned char *)data_in;
+	unsigned char 	*ptr_out = (unsigned char *)data_out;
+
+
+	while( size )
+	{
+		/** Send data */
+		spi_context.port[devnum].reg->DATA = (*ptr) << 8;
+		/** Wait 'til it's done */
+		while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
+
+		/** Retrieve data */
+		if(data_out == 0)
+		{
+			(void) (spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask);
+		}
+		else
+		{
+			*ptr_out = spi_context.port[devnum].reg->DATA & spi_context.port[devnum].ws_mask;
+			ptr_out++;
+		}
+
+		ptr++;
+		size--;
+	}
+	while( spi_context.port[devnum].reg->STATUS & SPIn_STATUS_TXST_Msk );
+
+	return NO_ERROR;
+}
+
 #endif //_MML_SPI_H_
 
 /* EOF */

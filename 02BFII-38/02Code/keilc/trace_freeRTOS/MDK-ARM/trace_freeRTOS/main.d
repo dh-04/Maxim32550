@@ -33,6 +33,13 @@ trace_freertos\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cms
 trace_freertos\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 trace_freertos\main.o: C:\Program Files\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 trace_freertos\main.o: ../Inc/FreeRTOSConfig.h
+trace_freertos\main.o: ../Inc/trcRecorder.h
+trace_freertos\main.o: ../Inc/trcConfig.h
+trace_freertos\main.o: ../Inc/trcPortDefines.h
+trace_freertos\main.o: ../Inc/trcSnapshotConfig.h
+trace_freertos\main.o: ../Inc/trcHardwarePort.h
+trace_freertos\main.o: ../Inc/trcKernelPort.h
+trace_freertos\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
 trace_freertos\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h
 trace_freertos\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h
 trace_freertos\main.o: ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h

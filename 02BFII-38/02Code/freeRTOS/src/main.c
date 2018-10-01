@@ -53,6 +53,7 @@
 #include <stdlib.h>
 #include "diag/Trace.h"
 #include <MAX325xx.h>
+#include "mlsLCDDriver.h"
 #include "FreeRTOS.h"
 #include "task.h"
 #include "timers.h"
@@ -71,13 +72,10 @@
 #define LED1_GPIO_PIN	21
 #define DELAY_TIME		1000
 
-int one = 0;
-int two = 0;
+xSemaphoreHandle xBinarySemaphore;
 
 void vTask1(void *pvParameters );
-void vTask2(void *pvParameters );
-
-
+void vTaskLCDDisplayCustomQRCode( Int8 * szSourceSring );
 
 void __attribute__ ((noinline))  __attribute__((optimize("-O0"))) 
 loop_delay(unsigned int ms)
@@ -95,11 +93,18 @@ loop_delay(unsigned int ms)
 
 int main(void)
 {
-	/* Infinite loop */
-	xTaskCreate( vTask2, "Task 2",100, NULL, 1,NULL );
-	xTaskCreate( vTask1, "Task 1",100, NULL, 1,NULL );
 
-	vTaskStartScheduler();
+	mlsLCDInit();
+	mlsLCDDrawScreen(~LCD_WHITE);
+
+	vSemaphoreCreateBinary(xBinarySemaphore);
+
+	if(  xBinarySemaphore != NULL)
+	{
+		xTaskCreate( vTask1, "Task 1",100, NULL, 1,NULL );
+		xTaskCreate( vTaskLCDDisplayCustomQRCode, "Task 2",2500, "LeDTruong", 2,NULL );
+		vTaskStartScheduler();
+	}
 
 	while (1) {
 	}
@@ -109,21 +114,21 @@ void vTask1( void *pvParameters )
 {
 	for( ;; )
 	{
-		one++;
-		loop_delay(500);
+		xSemaphoreGive(xBinarySemaphore);
+		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
-void vTask2( void *pvParameters )
+void vTaskLCDDisplayCustomQRCode( Int8 * szSourceSring )
 {
+	uint8_t QRCodeBufeer[qrcodegen_BUFFER_LEN_MAX];
+	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
 	for( ;; )
 	{
-		two++;
-		loop_delay(1000);
+		xSemaphoreTake(xBinarySemaphore, portMAX_DELAY);
+		mlsLCDDisplayCustomQRCode(szSourceSring, QRCodeBufeer, tempBuffer);
 	}
 }
-
-
 
 #ifdef __SCPA_FWK__
 #error "This example does not handle SCPA Target"
