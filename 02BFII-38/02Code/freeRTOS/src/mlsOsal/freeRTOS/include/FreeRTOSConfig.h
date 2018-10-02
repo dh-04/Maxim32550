@@ -40,6 +40,7 @@
 #define FREERTOS_CONFIG_H
 
 #include <stdio.h>
+#include "trcRecorder.h"
 //#include "../mlsDebug/inc/printf_lite.h"
 
 /*-----------------------------------------------------------

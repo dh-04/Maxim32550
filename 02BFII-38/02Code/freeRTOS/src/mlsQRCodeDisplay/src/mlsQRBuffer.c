@@ -39,7 +39,7 @@
 
 #include "../inc/mlsQRBuffer.h"
 #include "../inc/qrencode.h"
-//#include "mlsOsal.h"
+#include "mlsOsal.h"
 #include "mlsLCDDriver.h"
 
 /********** Local Constant and compile switch definition section **************/
@@ -131,15 +131,15 @@ mlsErrorCode_t mlsGenerateQRCode(Int32 *pwidth,UInt8 *LcdBuffer, Int8 * szSource
         	LcdBuffer[i] = *pdata;
         	pdata++;
         }
-        QRcode_free(pQRC);
+        QRcode_vPortFree(pQRC);
     }
     return MLS_SUCCESS;
 }
-void mlsTestMallocFree(void)
+void mlsTestpvPortMallocvPortFree(void)
 {
 	uint32_t *ptest;
-	ptest =(uint32_t *) malloc(50);
-	free(ptest);
+	ptest =(uint32_t *) pvPortMalloc(50);
+	vPortFree(ptest);
 }
 /**@}*/
 

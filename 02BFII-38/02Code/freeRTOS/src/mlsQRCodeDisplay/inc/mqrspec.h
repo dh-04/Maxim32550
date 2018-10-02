@@ -133,7 +133,7 @@ extern unsigned int MQRspec_getFormatInfo(int mask, int version, QRecLevel level
  * When the same version is requested twice or more, a copy of cached frame
  * is returned.
  * @param version
- * @return Array of unsigned char. You can free it by free().
+ * @return Array of unsigned char. You can free it by vPortFree().
  */
 extern unsigned char *MQRspec_newFrame(int version);
 

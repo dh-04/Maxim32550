@@ -444,7 +444,7 @@ static unsigned char *QRspec_createFrame(int version)
 	unsigned int verinfo, v;
 
 	width = qrspecCapacity[version].width;
-	frame = (unsigned char *)malloc(width * width);
+	frame = (unsigned char *)pvPortMalloc(width * width);
 	if(frame == NULL) return NULL;
 
 	memset(frame, 0, width * width);
@@ -538,7 +538,7 @@ unsigned char *QRspec_newFrame(int version)
 	if(frames[version] == NULL) return NULL;
 
 	width = qrspecCapacity[version].width;
-	frame = (unsigned char *)malloc(width * width);
+	frame = (unsigned char *)pvPortMalloc(width * width);
 	if(frame == NULL) return NULL;
 	memcpy(frame, frames[version], width * width);
 
@@ -553,7 +553,7 @@ void QRspec_clearCache(void)
 	pthread_mutex_lock(&frames_mutex);
 #endif
 	for(i=1; i<=QRSPEC_VERSION_MAX; i++) {
-		free(frames[i]);
+		vPortFree(frames[i]);
 		frames[i] = NULL;
 	}
 #ifdef HAVE_LIBPTHREAD

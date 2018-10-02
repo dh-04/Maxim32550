@@ -44,7 +44,7 @@
 char *strdup(const char *s)
 {
 	size_t len = strlen(s) + 1;
-	void *new = malloc(len);
+	void *new = pvPortMalloc(len);
 	if(new == NULL) return NULL;
 	return (char *)memcpy(new, s, len);
 }
@@ -302,7 +302,7 @@ int Split_splitStringToQRinput(const char *string, QRinput *input,
 		newstr = dupAndToUpper(string, hint);
 		if(newstr == NULL) return -1;
 		ret = Split_splitString(newstr, input, hint);
-		free(newstr);
+		vPortFree(newstr);
 	} else {
 		ret = Split_splitString(string, input, hint);
 	}

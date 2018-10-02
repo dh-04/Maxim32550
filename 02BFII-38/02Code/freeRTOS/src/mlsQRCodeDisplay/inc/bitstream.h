@@ -33,6 +33,6 @@ extern int BitStream_appendNum(BitStream *bstream, int bits, unsigned int num);
 extern int BitStream_appendBytes(BitStream *bstream, int size, unsigned char *data);
 #define BitStream_size(__bstream__) (__bstream__->length)
 extern unsigned char *BitStream_toByte(BitStream *bstream);
-extern void BitStream_free(BitStream *bstream);
+extern void BitStream_vPortFree(BitStream *bstream);
 
 #endif /* __BITSTREAM_H__ */

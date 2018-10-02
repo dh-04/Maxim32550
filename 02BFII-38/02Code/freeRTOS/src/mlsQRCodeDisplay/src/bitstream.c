@@ -32,7 +32,7 @@ BitStream *BitStream_new(void)
 {
 	BitStream *bstream;
 
-	bstream = (BitStream *)malloc(sizeof(BitStream));
+	bstream = (BitStream *)pvPortMalloc(sizeof(BitStream));
 	if(bstream == NULL) return NULL;
 
 	bstream->length = 0;
@@ -49,13 +49,13 @@ static int BitStream_allocate(BitStream *bstream, int length)
 		return -1;
 	}
 
-	data = (unsigned char *)malloc(length);
+	data = (unsigned char *)pvPortMalloc(length);
 	if(data == NULL) {
 		return -1;
 	}
 
 	if(bstream->data) {
-		free(bstream->data);
+		vPortFree(bstream->data);
 	}
 	bstream->length = length;
 	bstream->data = data;
@@ -74,7 +74,7 @@ static BitStream *BitStream_newFromNum(int bits, unsigned int num)
 	if(bstream == NULL) return NULL;
 
 	if(BitStream_allocate(bstream, bits)) {
-		BitStream_free(bstream);
+		BitStream_vPortFree(bstream);
 		return NULL;
 	}
 
@@ -104,7 +104,7 @@ static BitStream *BitStream_newFromBytes(int size, unsigned char *data)
 	if(bstream == NULL) return NULL;
 
 	if(BitStream_allocate(bstream, size * 8)) {
-		BitStream_free(bstream);
+		BitStream_vPortFree(bstream);
 		return NULL;
 	}
 
@@ -143,14 +143,14 @@ int BitStream_append(BitStream *bstream, BitStream *arg)
 		return 0;
 	}
 
-	data = (unsigned char *)malloc(bstream->length + arg->length);
+	data = (unsigned char *)pvPortMalloc(bstream->length + arg->length);
 	if(data == NULL) {
 		return -1;
 	}
 	memcpy(data, bstream->data, bstream->length);
 	memcpy(data + bstream->length, arg->data, arg->length);
 
-	free(bstream->data);
+	vPortFree(bstream->data);
 	bstream->length += arg->length;
 	bstream->data = data;
 
@@ -168,7 +168,7 @@ int BitStream_appendNum(BitStream *bstream, int bits, unsigned int num)
 	if(b == NULL) return -1;
 
 	ret = BitStream_append(bstream, b);
-	BitStream_free(b);
+	BitStream_vPortFree(b);
 
 	return ret;
 }
@@ -184,7 +184,7 @@ int BitStream_appendBytes(BitStream *bstream, int size, unsigned char *data)
 	if(b == NULL) return -1;
 
 	ret = BitStream_append(bstream, b);
-	BitStream_free(b);
+	BitStream_vPortFree(b);
 
 	return ret;
 }
@@ -199,7 +199,7 @@ unsigned char *BitStream_toByte(BitStream *bstream)
 	if(size == 0) {
 		return NULL;
 	}
-	data = (unsigned char *)malloc((size + 7) / 8);
+	data = (unsigned char *)pvPortMalloc((size + 7) / 8);
 	if(data == NULL) {
 		return NULL;
 	}
@@ -229,10 +229,10 @@ unsigned char *BitStream_toByte(BitStream *bstream)
 	return data;
 }
 
-void BitStream_free(BitStream *bstream)
+void BitStream_vPortFree(BitStream *bstream)
 {
 	if(bstream != NULL) {
-		free(bstream->data);
-		free(bstream);
+		vPortFree(bstream->data);
+		vPortFree(bstream);
 	}
 }

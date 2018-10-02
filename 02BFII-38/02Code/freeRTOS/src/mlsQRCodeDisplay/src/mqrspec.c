@@ -204,7 +204,7 @@ static unsigned char *MQRspec_createFrame(int version)
 	int x, y;
 
 	width = mqrspecCapacity[version].width;
-	frame = (unsigned char *)malloc(width * width);
+	frame = (unsigned char *)pvPortMalloc(width * width);
 	if(frame == NULL) return NULL;
 
 	memset(frame, 0, width * width);
@@ -256,7 +256,7 @@ unsigned char *MQRspec_newFrame(int version)
 	if(frames[version] == NULL) return NULL;
 
 	width = mqrspecCapacity[version].width;
-	frame = (unsigned char *)malloc(width * width);
+	frame = (unsigned char *)pvPortMalloc(width * width);
 	if(frame == NULL) return NULL;
 	memcpy(frame, frames[version], width * width);
 
@@ -271,7 +271,7 @@ void MQRspec_clearCache(void)
 	pthread_mutex_lock(&frames_mutex);
 #endif
 	for(i=1; i<=MQRSPEC_VERSION_MAX; i++) {
-		free(frames[i]);
+		vPortFree(frames[i]);
 		frames[i] = NULL;
 	}
 #ifdef HAVE_LIBPTHREAD

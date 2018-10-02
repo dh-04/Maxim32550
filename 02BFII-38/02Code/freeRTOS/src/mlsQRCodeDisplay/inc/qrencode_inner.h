@@ -51,7 +51,7 @@ typedef struct {
 
 extern QRRawCode *QRraw_new(QRinput *input);
 extern unsigned char QRraw_getCode(QRRawCode *raw);
-extern void QRraw_free(QRRawCode *raw);
+extern void QRraw_vPortFree(QRRawCode *raw);
 
 /******************************************************************************
  * Raw code for Micro QR Code
@@ -70,7 +70,7 @@ typedef struct {
 
 extern MQRRawCode *MQRraw_new(QRinput *input);
 extern unsigned char MQRraw_getCode(MQRRawCode *raw);
-extern void MQRraw_free(MQRRawCode *raw);
+extern void MQRraw_vPortFree(MQRRawCode *raw);
 
 /******************************************************************************
  * Frame filling

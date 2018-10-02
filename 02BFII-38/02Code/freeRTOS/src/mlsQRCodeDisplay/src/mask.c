@@ -150,7 +150,7 @@ unsigned char *Mask_makeMaskedFrame(int width, unsigned char *frame, int mask)
 {
 	unsigned char *masked;
 
-	masked = (unsigned char *)malloc(width * width);
+	masked = (unsigned char *)pvPortMalloc(width * width);
 	if(masked == NULL) return NULL;
 
 	maskMakers[mask](width, frame, masked);
@@ -167,7 +167,7 @@ unsigned char *Mask_makeMask(int width, unsigned char *frame, int mask, QRecLeve
 		return NULL;
 	}
 
-	masked = (unsigned char *)malloc(width * width);
+	masked = (unsigned char *)pvPortMalloc(width * width);
 	if(masked == NULL) return NULL;
 
 	maskMakers[mask](width, frame, masked);
@@ -298,7 +298,7 @@ unsigned char *Mask_mask(int width, unsigned char *frame, QRecLevel level)
 	int demerit;
 	int w2 = width * width;
 
-	mask = (unsigned char *)malloc(w2);
+	mask = (unsigned char *)pvPortMalloc(w2);
 	if(mask == NULL) return NULL;
 	bestMask = NULL;
 
@@ -314,13 +314,13 @@ unsigned char *Mask_mask(int width, unsigned char *frame, QRecLevel level)
 //		printf("(%d,%d,%d,%d)=%d\n", n1, n2, n3 ,n4, demerit);
 		if(demerit < minDemerit) {
 			minDemerit = demerit;
-			free(bestMask);
+			vPortFree(bestMask);
 			bestMask = mask;
-			mask = (unsigned char *)malloc(w2);
+			mask = (unsigned char *)pvPortMalloc(w2);
 			if(mask == NULL) break;
 		}
 	}
-	free(mask);
+	vPortFree(mask);
 	return bestMask;
 }
 

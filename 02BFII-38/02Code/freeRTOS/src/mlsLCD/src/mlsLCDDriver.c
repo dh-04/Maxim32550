@@ -865,3 +865,50 @@ mlsErrorCode_t mlsLCDDisplayQRText(Int8 * SourceSring,
 
 	return err;
 }
+
+mlsErrorCode_t _OldmlsLCDDisplayCustomQRCode(Int8 * szSourceSring)
+{
+	UInt8 x,y,i,t;
+	UInt8 x1, x2;
+	Int32 width;
+	UInt8 scale;
+	UInt8 QRCodeBufeer[4410];
+	const UInt32 MAX_RESOLUTION = 190;
+
+	mlsGenerateQRCode(&width,QRCodeBufeer,szSourceSring);
+	scale = MAX_RESOLUTION/width;
+
+	x1 = 105 - width*scale/2;
+	x2 = width*scale - 1 + x1;
+
+	for(y = 0; y < width; y++)
+	{
+		for(x = 0; x < width; x++)
+		{
+			if (QRCodeBufeer[y*width + x] & 1)
+			{
+				for(i = 0;i < scale; i++)
+				{
+					for(t = 0;t < scale; t++)
+					{
+						mlsLCDSetPixelBuffer(x*scale + i +  t*scale*width,LCD_BLACK);
+					}
+				}
+			}
+			else
+			{
+				for(i = 0;i < scale; i++)
+				{
+					for(t = 0;t < scale; t++)
+					{
+						mlsLCDSetPixelBuffer(x*scale + i +  t*scale*width,LCD_BACKGROUND_COLOR/*LCD_WHITE*/);
+					}
+				}
+			}
+		}
+		mlsLCDDrawBuffer(x1,y*scale + (gLCD_opt.height - width*scale)/2,x2,(y + 1)*scale - 1 + (gLCD_opt.height - width*scale)/2);
+	}
+	return MLS_SUCCESS;
+}
+
+

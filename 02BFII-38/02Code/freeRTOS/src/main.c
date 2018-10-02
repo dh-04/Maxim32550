@@ -75,7 +75,19 @@
 xSemaphoreHandle xBinarySemaphore;
 
 void vTask1(void *pvParameters );
-void vTaskLCDDisplayCustomQRCode( Int8 * szSourceSring );
+void vTaskCheckRunTimeNewCode( Int8 * szSourceSring );
+
+/*NOTE:
+ * Due to not use pvPortMalloc for allocate memory for New Code, so do not calculate the allocate memory for New Code
+ * Calculate memory New Code by calculating the size of array QRCodeBufeer and tempBuffer.
+ */
+
+/*NOTE:
+ * Check runtime by function xTaskGetTickCount after vTaskStartScheduler() run.
+ */
+
+static void CheckMemoryOldCode();
+static void CheckRunTimeOldCode();
 
 void __attribute__ ((noinline))  __attribute__((optimize("-O0"))) 
 loop_delay(unsigned int ms)
@@ -93,16 +105,23 @@ loop_delay(unsigned int ms)
 
 int main(void)
 {
+	size_t preHeapSize, nowHeapSize, AllocatedHeapSize, leakHeapSize;
+	TickType_t xTime1, xTime2, xExecutionTime;
+
 
 	mlsLCDInit();
 	mlsLCDDrawScreen(~LCD_WHITE);
 
-	vSemaphoreCreateBinary(xBinarySemaphore);
+	CheckMemoryOldCode();
 
+	// check total memory allocated on heap of OLDCODE
+	AllocatedHeapSize = xPortGetMinimumEverFreeHeapSize();
+
+	vSemaphoreCreateBinary(xBinarySemaphore);
 	if(  xBinarySemaphore != NULL)
 	{
 		xTaskCreate( vTask1, "Task 1",100, NULL, 1,NULL );
-		xTaskCreate( vTaskLCDDisplayCustomQRCode, "Task 2",2500, "LeDTruong", 2,NULL );
+		xTaskCreate( vTaskCheckRunTimeNewCode, "Task 2",2500, "LeDTruong", 2,NULL );
 		vTaskStartScheduler();
 	}
 
@@ -114,20 +133,48 @@ void vTask1( void *pvParameters )
 {
 	for( ;; )
 	{
+		CheckRunTimeOldCode();
 		xSemaphoreGive(xBinarySemaphore);
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
-void vTaskLCDDisplayCustomQRCode( Int8 * szSourceSring )
+void vTaskCheckRunTimeNewCode( Int8 * szSourceSring )
 {
-	uint8_t QRCodeBufeer[qrcodegen_BUFFER_LEN_MAX];
-	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+	UInt8 QRCodeBufeer[qrcodegen_BUFFER_LEN_MAX];
+	UInt8 tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+	TickType_t xTime1, xTime2, xExecutionTime;
 	for( ;; )
 	{
 		xSemaphoreTake(xBinarySemaphore, portMAX_DELAY);
+		xTime1 = xTaskGetTickCount();
 		mlsLCDDisplayCustomQRCode(szSourceSring, QRCodeBufeer, tempBuffer);
+		xTime2 = xTaskGetTickCount();
+		xExecutionTime = xTime2 - xTime1;
 	}
+}
+
+static void CheckMemoryOldCode()
+{
+	size_t preHeapSize, nowHeapSize, AllocatedHeapSize, leakHeapSize;
+	//check memory leak of OLDCODE
+	preHeapSize = xPortGetFreeHeapSize();
+	_OldmlsLCDDisplayCustomQRCode("LeDTruong");
+	nowHeapSize = xPortGetFreeHeapSize();
+	leakHeapSize = nowHeapSize - preHeapSize;
+
+	// check total memory allocated on heap of OLDCODE
+	AllocatedHeapSize = xPortGetMinimumEverFreeHeapSize();
+
+}
+
+static void CheckRunTimeOldCode()
+{
+	TickType_t xTime1, xTime2, xExecutionTime;
+	xTime1 = xTaskGetTickCount();
+	_OldmlsLCDDisplayCustomQRCode("LeDTruong");
+	xTime2 = xTaskGetTickCount();
+	xExecutionTime = xTime2 - xTime1;
 }
 
 #ifdef __SCPA_FWK__

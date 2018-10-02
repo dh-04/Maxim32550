@@ -133,16 +133,16 @@ static RS *init_rs_char(int symsize, int gfpoly, int fcr, int prim, int nroots, 
   rs->nn = (1<<symsize)-1;
   rs->pad = pad;
 
-  rs->alpha_to = (data_t *)malloc(sizeof(data_t)*(rs->nn+1));
+  rs->alpha_to = (data_t *)pvPortMalloc(sizeof(data_t)*(rs->nn+1));
   if(rs->alpha_to == NULL){
-    free(rs);
+    vPortFree(rs);
     rs = NULL;
     goto done;
   }
-  rs->index_of = (data_t *)malloc(sizeof(data_t)*(rs->nn+1));
+  rs->index_of = (data_t *)pvPortMalloc(sizeof(data_t)*(rs->nn+1));
   if(rs->index_of == NULL){
-    free(rs->alpha_to);
-    free(rs);
+    vPortFree(rs->alpha_to);
+    vPortFree(rs);
     rs = NULL;
     goto done;
   }
@@ -161,19 +161,19 @@ static RS *init_rs_char(int symsize, int gfpoly, int fcr, int prim, int nroots, 
   }
   if(sr != 1){
     /* field generator polynomial is not primitive! */
-    free(rs->alpha_to);
-    free(rs->index_of);
-    free(rs);
+    vPortFree(rs->alpha_to);
+    vPortFree(rs->index_of);
+    vPortFree(rs);
     rs = NULL;
     goto done;
   }
 
   /* Form RS code generator polynomial from its roots */
-  rs->genpoly = (data_t *)malloc(sizeof(data_t)*(nroots+1));
+  rs->genpoly = (data_t *)pvPortMalloc(sizeof(data_t)*(nroots+1));
   if(rs->genpoly == NULL){
-    free(rs->alpha_to);
-    free(rs->index_of);
-    free(rs);
+    vPortFree(rs->alpha_to);
+    vPortFree(rs->index_of);
+    vPortFree(rs);
     rs = NULL;
     goto done;
   }
@@ -242,10 +242,10 @@ DONE:
 
 void free_rs_char(RS *rs)
 {
-	free(rs->alpha_to);
-	free(rs->index_of);
-	free(rs->genpoly);
-	free(rs);
+	vPortFree(rs->alpha_to);
+	vPortFree(rs->index_of);
+	vPortFree(rs->genpoly);
+	vPortFree(rs);
 }
 
 void free_rs_cache(void)

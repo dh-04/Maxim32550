@@ -54,7 +54,7 @@
  * \section result Result
  * The encoded symbol is resulted as a ::QRcode object. It will contain
  * its version number, width of the symbol and an array represents the symbol.
- * See ::QRcode for the details. You can free the object by QRcode_free().
+ * See ::QRcode for the details. You can free the object by QRcode_vPortFree().
  *
  * Please note that the version of the result may be larger than specified.
  * In such cases, the input data would be too large to be encoded in a
@@ -81,7 +81,7 @@
  *     // do something
  *     entry = entry->next;
  * }
- * QRcode_List_free(entry);
+ * QRcode_List_vPortFree(entry);
  * \endcode
  *
  * Instead of using auto-parsing functions, you can construct your own
@@ -262,7 +262,7 @@ extern int QRinput_setVersionAndErrorCorrectionLevel(QRinput *input, int version
  * All of data chunks in the input object are freed too.
  * @param input input object.
  */
-extern void QRinput_free(QRinput *input);
+extern void QRinput_vPortFree(QRinput *input);
 
 /**
  * Validate the input data.
@@ -311,7 +311,7 @@ extern int QRinput_Struct_appendInput(QRinput_Struct *s, QRinput *input);
  * Free all of QRinput in the set.
  * @param s a structured input object.
  */
-extern void QRinput_Struct_free(QRinput_Struct *s);
+extern void QRinput_Struct_vPortFree(QRinput_Struct *s);
 
 /**
  * Split a QRinput to QRinput_Struct. It calculates a parity, set it, then
@@ -468,7 +468,7 @@ extern QRcode *QRcode_encodeDataMQR(int size, const unsigned char *data, int ver
  * Free the instance of QRcode class.
  * @param qrcode an instance of QRcode class.
  */
-extern void QRcode_free(QRcode *qrcode);
+extern void QRcode_vPortFree(QRcode *qrcode);
 
 /**
  * Create structured symbols from the input data.
@@ -530,7 +530,7 @@ extern int QRcode_List_size(QRcode_List *qrlist);
  * Free the QRcode_List.
  * @param qrlist a head entry of a QRcode_List.
  */
-extern void QRcode_List_free(QRcode_List *qrlist);
+extern void QRcode_List_vPortFree(QRcode_List *qrlist);
 
 
 /******************************************************************************

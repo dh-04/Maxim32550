@@ -96,7 +96,7 @@ unsigned char *MMask_makeMaskedFrame(int width, unsigned char *frame, int mask)
 {
 	unsigned char *masked;
 
-	masked = (unsigned char *)malloc(width * width);
+	masked = (unsigned char *)pvPortMalloc(width * width);
 	if(masked == NULL) return NULL;
 
 	maskMakers[mask](width, frame, masked);
@@ -116,7 +116,7 @@ unsigned char *MMask_makeMask(int version, unsigned char *frame, int mask, QRecL
 	}
 
 	width = MQRspec_getWidth(version);
-	masked = (unsigned char *)malloc(width * width);
+	masked = (unsigned char *)pvPortMalloc(width * width);
 	if(masked == NULL) return NULL;
 
 	maskMakers[mask](width, frame, masked);
@@ -155,7 +155,7 @@ unsigned char *MMask_mask(int version, unsigned char *frame, QRecLevel level)
 
 	width = MQRspec_getWidth(version);
 
-	mask = (unsigned char *)malloc(width * width);
+	mask = (unsigned char *)pvPortMalloc(width * width);
 	if(mask == NULL) return NULL;
 	bestMask = NULL;
 
@@ -166,12 +166,12 @@ unsigned char *MMask_mask(int version, unsigned char *frame, QRecLevel level)
 		score = MMask_evaluateSymbol(width, mask);
 		if(score > maxScore) {
 			maxScore = score;
-			free(bestMask);
+			vPortFree(bestMask);
 			bestMask = mask;
-			mask = (unsigned char *)malloc(width * width);
+			mask = (unsigned char *)pvPortMalloc(width * width);
 			if(mask == NULL) break;
 		}
 	}
-	free(mask);
+	vPortFree(mask);
 	return bestMask;
 }

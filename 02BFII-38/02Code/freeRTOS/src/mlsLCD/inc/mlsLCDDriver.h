@@ -187,6 +187,7 @@ mlsErrorCode_t mlsLCDDisplayQRText(Int8 * SourceSring,
 									char *line3,
 									char *line4);
 
+mlsErrorCode_t _OldmlsLCDDisplayCustomQRCode(Int8 * szSourceSring);
 #ifdef __cplusplus
 }
 #endif
