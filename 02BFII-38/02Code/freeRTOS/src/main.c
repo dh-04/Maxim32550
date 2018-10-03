@@ -94,39 +94,31 @@ loop_delay(unsigned int ms)
 int main(void)
 {
 
-	mlsLCDInit();
-	mlsLCDDrawScreen(~LCD_WHITE);
-
-	vSemaphoreCreateBinary(xBinarySemaphore);
-
-	if(  xBinarySemaphore != NULL)
-	{
+		vTraceEnable(TRC_INIT);
 		xTaskCreate( vTask1, "Task 1",100, NULL, 1,NULL );
 		xTaskCreate( vTaskLCDDisplayCustomQRCode, "Task 2",2500, "LeDTruong", 2,NULL );
 		vTaskStartScheduler();
-	}
-
 	while (1) {
 	}
 }
 
 void vTask1( void *pvParameters )
 {
+	int one = 0;
 	for( ;; )
 	{
-		xSemaphoreGive(xBinarySemaphore);
+		one++;
 		vTaskDelay(pdMS_TO_TICKS(1000));
 	}
 }
 
 void vTaskLCDDisplayCustomQRCode( Int8 * szSourceSring )
 {
-	uint8_t QRCodeBufeer[qrcodegen_BUFFER_LEN_MAX];
-	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+	int two = 0;
 	for( ;; )
 	{
-		xSemaphoreTake(xBinarySemaphore, portMAX_DELAY);
-		mlsLCDDisplayCustomQRCode(szSourceSring, QRCodeBufeer, tempBuffer);
+		two++;
+		vTaskDelay(pdMS_TO_TICKS(500));
 	}
 }
 

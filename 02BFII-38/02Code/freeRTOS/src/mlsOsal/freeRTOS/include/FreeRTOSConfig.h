@@ -65,7 +65,7 @@
 #define configMINIMAL_STACK_SIZE    ( ( unsigned short ) 100 )
 #define configTOTAL_HEAP_SIZE       ( ( size_t ) ( 48 * 1024 ) ) //vietdang increase size
 #define configMAX_TASK_NAME_LEN     ( 25 )
-#define configUSE_TRACE_FACILITY    0
+#define configUSE_TRACE_FACILITY    1
 #define configUSE_16_BIT_TICKS      0
 #define configIDLE_SHOULD_YIELD     1
 #define configUSE_CO_ROUTINES       0
@@ -127,3 +127,9 @@ to exclude the API function. */
 //#define configASSERT( x )   if( ( x ) == 0 ) {lite_printf(DBG_PRINT_LEVEL_DEBUG_MASK,"File %s Line %d \r\n", __FILE__, __LINE__); }
 
 #endif /* FREERTOS_CONFIG_H */
+
+/* Integrates the Tracealyzer recorder with FreeRTOS */
+#if ( configUSE_TRACE_FACILITY == 1 )
+#include "trcRecorder.h"
+#include "trcKernelPort.h"
+#endif
