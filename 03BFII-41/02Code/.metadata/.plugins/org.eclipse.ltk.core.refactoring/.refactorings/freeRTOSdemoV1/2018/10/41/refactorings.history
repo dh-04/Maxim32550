@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Move &apos;FreeRTOSConfig.h&apos; to &apos;include&apos;" description="Move &apos;FreeRTOSConfig.h&apos; to &apos;include&apos;" destination="include" element1="FreeRTOSConfig.h" flags="7" id="org.eclipse.ltk.core.refactoring.move.resources" resources="1" stamp="1538983001623" updateReferences="true"/>
+</session>

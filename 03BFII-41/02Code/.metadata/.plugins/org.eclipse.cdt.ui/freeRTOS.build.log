@@ -1,0 +1,63 @@
+10:12:57 **** Build of configuration SLA for project freeRTOS ****
+make all 
+Building file: ../src/main.c
+Invoking: Cross ARM GNU C Compiler
+arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-common -ffreestanding -Wall -Wextra  -g -D__SLA_FWK__ -DMAX32550_B2 -I"../include" -I"../src/TraceRecorder/config" -I"../src/TraceRecorder/streamports/Jlink_RTT/include" -I"../src/TraceRecorder/include" -I"../src/mlsOsal/inc" -I"../src/mlsLCD/inc" -I"../src/Source/portable" -I"../src/mlsQRCodeDisplay/inc" -I"../src/mlsQRCode/inc" -I"../src/mlsOsal/freeRTOS/include" -I"../src/mlsOsal/freeRTOS/portable" -I"../src/Source/include" -I"../system/include" -I"../system/include/cmsis" -I"../system/include/cmsis/Core" -I"../system/include/MAX32550-driver" -I"../include" -I"../system/include/cmsis/Maxim" -I"../system/include/Maxim" -I"../system/include/MAX32550-driver/usb" -I"../system/include/MAX32550-driver/usb/devclass" -I"../system/include/MAX32550-driver/usb/core" -I"../system/include/MAX32550-driver/usb/core/arm" -I"../system/include/MAX32550-driver/usb/enumerate" -std=gnu11 -MMD -MP -MF"src/main.d" -MT"src/main.o" -c -o "src/main.o" "../src/main.c"
+../src/main.c: In function 'main':
+../src/main.c:107:2: warning: implicit declaration of function 'UartInit' [-Wimplicit-function-declaration]
+  UartInit();
+  ^
+../src/main.c: In function 'vEventBitSettingTask':
+../src/main.c:152:3: warning: implicit declaration of function 'vPrintString' [-Wimplicit-function-declaration]
+   vPrintString( "Bit setting task -\t about to set bit 0.\r\n" );
+   ^
+../src/main.c:143:56: warning: unused variable 'xDontBlock' [-Wunused-variable]
+ const TickType_t xDelay200ms = pdMS_TO_TICKS( 200UL ), xDontBlock = 0;
+                                                        ^
+../src/main.c:141:41: warning: unused parameter 'pvParameters' [-Wunused-parameter]
+ static void vEventBitSettingTask( void *pvParameters )
+                                         ^
+../src/main.c: In function 'ulEventBitSettingISR':
+../src/main.c:204:1: warning: no return statement in function returning non-void [-Wreturn-type]
+ }
+ ^
+../src/main.c: In function 'vEventBitReadingTask':
+../src/main.c:207:41: warning: unused parameter 'pvParameters' [-Wunused-parameter]
+ static void vEventBitReadingTask( void *pvParameters )
+                                         ^
+../src/main.c: In function 'vPrintStringFromDaemonTask':
+../src/main.c:252:63: warning: unused parameter 'ulParameter2' [-Wunused-parameter]
+ void vPrintStringFromDaemonTask( void *pvParameter1, uint32_t ulParameter2 )
+                                                               ^
+../src/main.c: At top level:
+../src/main.c:85:13: warning: 'vIntegerGenerator' used but never defined
+ static void vIntegerGenerator( void *pvParameters );
+             ^
+../src/main.c:167:17: warning: 'ulEventBitSettingISR' defined but not used [-Wunused-function]
+ static uint32_t ulEventBitSettingISR( void )
+                 ^
+Finished building: ../src/main.c
+ 
+Invoking: Maxim Other Tools
+Finished building: all_imgs.o
+ 
+Building target: freeRTOS.elf
+Invoking: Cross ARM GNU C++ Linker
+arm-none-eabi-g++ -mcpu=cortex-m3 -mthumb -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-common -ffreestanding -Wall -Wextra  -g -nostartfiles -Xlinker --gc-sections -L"../ldscripts" -L"../libs" -Wl,-Map,"freeRTOS.map" -T mem.ld -T sections_sla.ld -o "freeRTOS.elf"  ./system/src/newlib/_cxx.o ./system/src/newlib/_exit.o ./system/src/newlib/_sbrk.o ./system/src/newlib/_startup.o ./system/src/newlib/_syscalls.o ./system/src/newlib/assert.o  ./system/src/diag/Trace.o ./system/src/diag/trace_impl.o  ./system/src/cortexm/_initialize_hardware.o ./system/src/cortexm/_reset_hardware.o ./system/src/cortexm/exception_handlers.o  ./system/src/cmsis/Maxim/cmsis_nvic.o ./system/src/cmsis/Maxim/header_MAX32550.o ./system/src/cmsis/Maxim/system_MAX32550.o ./system/src/cmsis/Maxim/vectors_MAX32550.o  ./system/src/MAX32550-driver/usb/enumerate/enumerate.o  ./system/src/MAX32550-driver/usb/devclass/cdc_acm.o ./system/src/MAX32550-driver/usb/devclass/fifo.o  ./system/src/MAX32550-driver/usb/core/arm/mml_usb.o  ./system/src/MAX32550-driver/usb/core/usb_event.o  ./system/src/MAX32550-driver/mml_adc.o ./system/src/MAX32550-driver/mml_dac.o ./system/src/MAX32550-driver/mml_dma.o ./system/src/MAX32550-driver/mml_gcr.o ./system/src/MAX32550-driver/mml_gpio.o ./system/src/MAX32550-driver/mml_i2c.o ./system/src/MAX32550-driver/mml_icc.o ./system/src/MAX32550-driver/mml_mlcd.o ./system/src/MAX32550-driver/mml_msr.o ./system/src/MAX32550-driver/mml_rtc.o ./system/src/MAX32550-driver/mml_sc.o ./system/src/MAX32550-driver/mml_sflc.o ./system/src/MAX32550-driver/mml_si.o ./system/src/MAX32550-driver/mml_skbd.o ./system/src/MAX32550-driver/mml_smon.o ./system/src/MAX32550-driver/mml_spi.o ./system/src/MAX32550-driver/mml_tmr.o ./system/src/MAX32550-driver/mml_trng.o ./system/src/MAX32550-driver/mml_uart.o ./system/src/MAX32550-driver/mml_wdt.o  ./src/mlsQRCode/src/qrcodegen.o  ./src/mlsOsal/src/mlsOsal.o  ./src/mlsOsal/freeRTOS/portable/heap_4.o ./src/mlsOsal/freeRTOS/portable/port.o  ./src/mlsOsal/freeRTOS/croutine.o ./src/mlsOsal/freeRTOS/event_groups.o ./src/mlsOsal/freeRTOS/list.o ./src/mlsOsal/freeRTOS/phFreeRTOSConfig.o ./src/mlsOsal/freeRTOS/queue.o ./src/mlsOsal/freeRTOS/tasks.o ./src/mlsOsal/freeRTOS/timers.o  ./src/mlsLCD/tst/mlsLCDTest.o  ./src/mlsLCD/src/mlsCalibri12pts.o ./src/mlsLCD/src/mlsCalibri15pts.o ./src/mlsLCD/src/mlsCalibri22pts.o ./src/mlsLCD/src/mlsLCDDriver.o ./src/mlsLCD/src/mlsLCDFont.o  ./src/TraceRecorder/src/SEGGER_RTT.o ./src/TraceRecorder/src/trcKernelPort.o ./src/TraceRecorder/src/trcSnapshotRecorder.o ./src/TraceRecorder/src/trcStreamingPort.o ./src/TraceRecorder/src/trcStreamingRecorder.o  ./src/_write.o ./src/main.o   
+./src/main.o: In function `main':
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:107: undefined reference to `UartInit'
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:136: undefined reference to `vIntegerGenerator'
+./src/main.o: In function `vEventBitSettingTask':
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:152: undefined reference to `vPrintString'
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:161: undefined reference to `vPrintString'
+./src/main.o: In function `vEventBitReadingTask':
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:234: undefined reference to `vPrintString'
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:239: undefined reference to `vPrintString'
+D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:244: undefined reference to `vPrintString'
+./src/main.o:D:\Intern_Styl\Maxim32550\03BFII-41\02Code\freeRTOS\SLA/../src/main.c:247: more undefined references to `vPrintString' follow
+collect2.exe: error: ld returned 1 exit status
+makefile:82: recipe for target 'freeRTOS.elf' failed
+make: *** [freeRTOS.elf] Error 1
+
+10:13:03 Build Finished (took 5s.854ms)
+

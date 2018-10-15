@@ -1,0 +1,21 @@
+17:20:57 **** Incremental Build of configuration Debug for project freeRTOS_WIN ****
+Info: Internal Builder is used for build
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\tasks.o" "..\\src\\freeRTOS\\tasks.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\event_groups.o" "..\\src\\freeRTOS\\event_groups.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\queue.o" "..\\src\\freeRTOS\\queue.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\port.o" "..\\src\\freeRTOS\\port.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\timers.o" "..\\src\\freeRTOS\\timers.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS_WIN.o" "..\\src\\freeRTOS_WIN.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\croutine.o" "..\\src\\freeRTOS\\croutine.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\heap_4.o" "..\\src\\freeRTOS\\heap_4.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\list.o" "..\\src\\freeRTOS\\list.c" 
+gcc -I../src/freeRTOS/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS\\stream_buffer.o" "..\\src\\freeRTOS\\stream_buffer.c" 
+gcc -o freeRTOS_WIN.exe "src\\freeRTOS\\croutine.o" "src\\freeRTOS\\event_groups.o" "src\\freeRTOS\\heap_4.o" "src\\freeRTOS\\list.o" "src\\freeRTOS\\port.o" "src\\freeRTOS\\queue.o" "src\\freeRTOS\\stream_buffer.o" "src\\freeRTOS\\tasks.o" "src\\freeRTOS\\timers.o" "src\\freeRTOS_WIN.o" -lwinmm 
+src\freeRTOS\tasks.o: In function `vTaskStartScheduler':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_WIN\Debug/../src/freeRTOS/tasks.c:1952: undefined reference to `vApplicationGetIdleTaskMemory'
+src\freeRTOS\timers.o: In function `xTimerCreateTimerTask':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_WIN\Debug/../src/freeRTOS/timers.c:244: undefined reference to `vApplicationGetTimerTaskMemory'
+collect2.exe: error: ld returned 1 exit status
+
+17:21:08 Build Finished (took 10s.884ms)
+

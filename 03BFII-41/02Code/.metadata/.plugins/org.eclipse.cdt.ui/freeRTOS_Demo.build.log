@@ -1,0 +1,32 @@
+13:28:14 **** Rebuild of configuration Debug for project freeRTOS_Demo ****
+Info: Internal Builder is used for build
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\portable\\heap_4.o" "..\\src\\Source\\portable\\heap_4.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\portable\\port.o" "..\\src\\Source\\portable\\port.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\croutine.o" "..\\src\\Source\\croutine.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\timers.o" "..\\src\\Source\\timers.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\tasks.o" "..\\src\\Source\\tasks.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\event_groups.o" "..\\src\\Source\\event_groups.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\queue.o" "..\\src\\Source\\queue.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\freeRTOS_Demo.o" "..\\src\\freeRTOS_Demo.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\list.o" "..\\src\\Source\\list.c" 
+gcc -I../src/Source/include -O0 -g3 -Wall -c -fmessage-length=0 -o "src\\Source\\stream_buffer.o" "..\\src\\Source\\stream_buffer.c" 
+gcc -o freeRTOS_Demo.exe "src\\Source\\croutine.o" "src\\Source\\event_groups.o" "src\\Source\\list.o" "src\\Source\\portable\\heap_4.o" "src\\Source\\portable\\port.o" "src\\Source\\queue.o" "src\\Source\\stream_buffer.o" "src\\Source\\tasks.o" "src\\Source\\timers.o" "src\\freeRTOS_Demo.o" 
+src\Source\portable\port.o: In function `prvSimulatedPeripheralTimer':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/portable/port.c:132: undefined reference to `timeGetDevCaps@8'
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/portable/port.c:135: undefined reference to `timeBeginPeriod@4'
+src\Source\portable\port.o: In function `prvEndProcess':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/portable/port.c:199: undefined reference to `timeGetDevCaps@8'
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/portable/port.c:203: undefined reference to `timeEndPeriod@4'
+src\Source\tasks.o: In function `vTaskStartScheduler':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/tasks.c:1952: undefined reference to `vApplicationGetIdleTaskMemory'
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/tasks.c:2031: undefined reference to `vConfigureTimerForRunTimeStats'
+src\Source\tasks.o: In function `uxTaskGetSystemState':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/tasks.c:2502: undefined reference to `ulGetRunTimeCounterValue'
+src\Source\tasks.o: In function `vTaskSwitchContext':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/tasks.c:2918: undefined reference to `ulGetRunTimeCounterValue'
+src\Source\timers.o: In function `xTimerCreateTimerTask':
+D:\Intern_Styl\Maxim32550\02BFII-38\02Code\freeRTOS_Demo\Debug/../src/Source/timers.c:244: undefined reference to `vApplicationGetTimerTaskMemory'
+collect2.exe: error: ld returned 1 exit status
+
+13:28:26 Build Finished (took 11s.890ms)
+

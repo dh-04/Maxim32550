@@ -1,0 +1,8 @@
+14:54:18 **** Incremental Build of configuration Debug for project freeRTOSdemoV1 ****
+Info: Internal Builder is used for build
+gcc -Xlinker -Map=rtosdemo.map -o freeRTOSdemoV1.exe "src\\DemosModifiedForLowTickRate\\recmutex.o" "src\\Run-time-stats-utils.o" "src\\Source\\croutine.o" "src\\Source\\event_groups.o" "src\\Source\\list.o" "src\\Source\\portable\\MSVC-MingW\\port.o" "src\\Source\\portable\\MemMang\\heap_4.o" "src\\Source\\queue.o" "src\\Source\\stream_buffer.o" "src\\Source\\tasks.o" "src\\Source\\timers.o" "src\\code_coverage_additions.o" "src\\main.o" "src\\trace\\streamports\\File\\trcStreamingPort.o" "src\\trace\\streamports\\TCPIP\\trcStreamingPort.o" "src\\trace\\trcKernelPort.o" "src\\trace\\trcSnapshotRecorder.o" "src\\trace\\trcStreamingRecorder.o" -lwinmm 
+c:/mingw/bin/../lib/gcc/mingw32/6.3.0/../../../libmingw32.a(main.o):(.text.startup+0xa0): undefined reference to `WinMain@16'
+collect2.exe: error: ld returned 1 exit status
+
+14:54:19 Build Finished (took 977ms)
+

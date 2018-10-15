@@ -1,0 +1,41 @@
+15:23:26 **** Incremental Build of configuration SLA for project freeRTOSv10 ****
+make all 
+Building file: ../src/freeRTOS/tasks.c
+Invoking: Cross ARM GNU C Compiler
+arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-common -ffreestanding -Wall -Wextra  -g -D__SLA_FWK__ -DMAX32550_B2 -I"../include" -I"../src/freeRTOS/include" -I"../system/include" -I"../system/include/cmsis" -I"../system/include/cmsis/Core" -I"../system/include/MAX32550-driver" -I"../include" -I"../system/include/cmsis/Maxim" -I"../system/include/Maxim" -I"../system/include/MAX32550-driver/usb" -I"../system/include/MAX32550-driver/usb/devclass" -I"../system/include/MAX32550-driver/usb/core" -I"../system/include/MAX32550-driver/usb/core/arm" -I"../system/include/MAX32550-driver/usb/enumerate" -std=gnu11 -MMD -MP -MF"src/freeRTOS/tasks.d" -MT"src/freeRTOS/tasks.o" -c -o "src/freeRTOS/tasks.o" "../src/freeRTOS/tasks.c"
+Finished building: ../src/freeRTOS/tasks.c
+ 
+Invoking: Maxim Other Tools
+Finished building: all_imgs.o
+ 
+Building target: freeRTOSv10.elf
+Invoking: Cross ARM GNU C++ Linker
+arm-none-eabi-g++ -mcpu=cortex-m3 -mthumb -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-common -ffreestanding -Wall -Wextra  -g -nostartfiles -Xlinker --gc-sections -L"../ldscripts" -L"../libs" -Wl,-Map,"freeRTOSv10.map" -T mem.ld -T sections_sla.ld -o "freeRTOSv10.elf"  ./system/src/newlib/_cxx.o ./system/src/newlib/_exit.o ./system/src/newlib/_sbrk.o ./system/src/newlib/_startup.o ./system/src/newlib/_syscalls.o ./system/src/newlib/assert.o  ./system/src/diag/Trace.o ./system/src/diag/trace_impl.o  ./system/src/cortexm/_initialize_hardware.o ./system/src/cortexm/_reset_hardware.o ./system/src/cortexm/exception_handlers.o  ./system/src/cmsis/Maxim/cmsis_nvic.o ./system/src/cmsis/Maxim/header_MAX32550.o ./system/src/cmsis/Maxim/system_MAX32550.o ./system/src/cmsis/Maxim/vectors_MAX32550.o  ./system/src/MAX32550-driver/usb/enumerate/enumerate.o  ./system/src/MAX32550-driver/usb/devclass/cdc_acm.o ./system/src/MAX32550-driver/usb/devclass/fifo.o  ./system/src/MAX32550-driver/usb/core/arm/mml_usb.o  ./system/src/MAX32550-driver/usb/core/usb_event.o  ./system/src/MAX32550-driver/mml_adc.o ./system/src/MAX32550-driver/mml_dac.o ./system/src/MAX32550-driver/mml_dma.o ./system/src/MAX32550-driver/mml_gcr.o ./system/src/MAX32550-driver/mml_gpio.o ./system/src/MAX32550-driver/mml_i2c.o ./system/src/MAX32550-driver/mml_icc.o ./system/src/MAX32550-driver/mml_mlcd.o ./system/src/MAX32550-driver/mml_msr.o ./system/src/MAX32550-driver/mml_rtc.o ./system/src/MAX32550-driver/mml_sc.o ./system/src/MAX32550-driver/mml_sflc.o ./system/src/MAX32550-driver/mml_si.o ./system/src/MAX32550-driver/mml_skbd.o ./system/src/MAX32550-driver/mml_smon.o ./system/src/MAX32550-driver/mml_spi.o ./system/src/MAX32550-driver/mml_tmr.o ./system/src/MAX32550-driver/mml_trng.o ./system/src/MAX32550-driver/mml_uart.o ./system/src/MAX32550-driver/mml_wdt.o  ./src/freeRTOS/croutine.o ./src/freeRTOS/event_groups.o ./src/freeRTOS/heap_4.o ./src/freeRTOS/list.o ./src/freeRTOS/port.o ./src/freeRTOS/queue.o ./src/freeRTOS/stream_buffer.o ./src/freeRTOS/tasks.o ./src/freeRTOS/timers.o  ./src/_write.o ./src/main.o   
+Finished building target: freeRTOSv10.elf
+ 
+Invoking: Cross ARM GNU Create Flash Image
+arm-none-eabi-objcopy -O binary -R .sb_trailer --gap-fill 0xFF "freeRTOSv10.elf"  "freeRTOSv10.bin"
+Finished building: freeRTOSv10.bin
+ 
+Invoking: Cross ARM GNU Print Size
+arm-none-eabi-size --format=berkeley "freeRTOSv10.elf"
+   text	   data	    bss	    dec	    hex	filename
+   7960	     28	  10840	  18828	   498c	freeRTOSv10.elf
+Finished building: freeRTOSv10.siz
+ 
+Invoking: Maxim BIN Signing Tools
+ca_sign_build verbose=no ecdsa_file=../keys/maximtestcrk.key algo=ecdsa application_version=1.0.0 ca="freeRTOSv10.bin" sca="freeRTOSv10.sbin"
+CA signature build v1.5.5 (build 1) (c)Maxim Integrated 2006-2016
+
+--warning: this tool does not handle keys in a PCI-PTS compliant way, only for test --
+WARNING: <ca_sign_build.ini> not found
+header not generated as instructed
+Finished building: freeRTOSv10.bin.sig
+ 
+Invoking: Maxim ELF Signing Tools
+arm-none-eabi-objcopy --update-section .sb_trailer="freeRTOSv10.bin.sig" "freeRTOSv10.elf"
+Finished building: freeRTOSv10.self
+ 
+
+15:23:29 Build Finished (took 3s.298ms)
+

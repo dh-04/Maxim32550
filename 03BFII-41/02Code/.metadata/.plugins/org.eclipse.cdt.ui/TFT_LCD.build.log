@@ -1,0 +1,202 @@
+14:18:07 **** Incremental Build of configuration SLA for project TFT_LCD ****
+make all 
+Building file: ../src/mlsLCD/tst/mlsLCDTest.c
+Invoking: Cross ARM GNU C Compiler
+arm-none-eabi-gcc -mcpu=cortex-m3 -mthumb -O0 -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-common -ffreestanding -Wall -Wextra  -g -D__SLA_FWK__ -DMAX32550_A3 -I"../include" -I"../src/mlsQRCodeDisplay/inc" -I"../src/mlsOsal/inc" -I"../src/mlsLCD/inc" -I"../system/include" -I"../system/include/cmsis" -I"../system/include/cmsis/Core" -I"../system/include/MAX32550-driver" -I"../include" -I"../system/include/cmsis/Maxim" -I"../system/include/Maxim" -I"../system/include/MAX32550-driver/usb" -I"../system/include/MAX32550-driver/usb/devclass" -I"../system/include/MAX32550-driver/usb/core" -I"../system/include/MAX32550-driver/usb/core/arm" -I"../system/include/MAX32550-driver/usb/enumerate" -std=gnu11 -MMD -MP -MF"src/mlsLCD/tst/mlsLCDTest.d" -MT"src/mlsLCD/tst/mlsLCDTest.o" -c -o "src/mlsLCD/tst/mlsLCDTest.o" "../src/mlsLCD/tst/mlsLCDTest.c"
+In file included from ../src/mlsLCD/inc/mlsLCDDriver.h:11:0,
+                 from ../src/mlsLCD/tst/mlsLCDTest.c:28:
+../src/mlsLCD/inc/mlsLCDFont.h:43:2: error: unknown type name 'UInt16'
+  UInt16 fontHeight;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:44:2: error: unknown type name 'UInt8'
+  UInt8 firstchar;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:45:2: error: unknown type name 'UInt8'
+  UInt8 lastchar;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:46:2: error: unknown type name 'UInt8'
+  UInt8 firstsymbol;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:47:2: error: unknown type name 'UInt8'
+  UInt8 lastsymbol;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:48:8: error: unknown type name 'UInt16'
+  const UInt16 *fontIndex;
+        ^
+../src/mlsLCD/inc/mlsLCDFont.h:49:8: error: unknown type name 'UInt8'
+  const UInt8 *fontdata;
+        ^
+../src/mlsLCD/inc/mlsLCDFont.h:55:2: error: unknown type name 'UInt16'
+  UInt16 width;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:56:2: error: unknown type name 'UInt16'
+  UInt16 height;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:62:2: error: unknown type name 'UInt8'
+  UInt8 numImage;
+  ^
+../src/mlsLCD/inc/mlsLCDFont.h:64:2: error: unknown type name 'UInt32'
+  UInt32 address[MAX_NUM_IMAGE];
+  ^
+In file included from ../src/mlsLCD/tst/mlsLCDTest.c:28:0:
+../src/mlsLCD/inc/mlsLCDDriver.h:48:2: error: unknown type name 'UInt16'
+  UInt16 lineMask;
+  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:49:2: error: unknown type name 'UInt8'
+  UInt8  string[30];
+  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:57:2: error: unknown type name 'UInt8'
+  UInt8 dataLen;
+  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:58:2: error: unknown type name 'UInt8'
+  UInt8 data[30];
+  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:66:2: error: unknown type name 'UInt8'
+  UInt8 totalRow;
+  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:93:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDInit(void);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:102:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:102:33: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2);
+                                 ^
+../src/mlsLCD/inc/mlsLCDDriver.h:102:44: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2);
+                                            ^
+../src/mlsLCD/inc/mlsLCDDriver.h:102:54: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2);
+                                                      ^
+../src/mlsLCD/inc/mlsLCDDriver.h:102:65: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawBuffer(UInt16 x1, UInt16 y1,UInt16 x2, UInt16 y2);
+                                                                 ^
+../src/mlsLCD/inc/mlsLCDDriver.h:108:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDrawScreen(UInt16 color);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:108:33: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawScreen(UInt16 color);
+                                 ^
+../src/mlsLCD/inc/mlsLCDDriver.h:112:17: error: unknown type name 'UInt16'
+ void mlsLCDPuts(UInt16 x, UInt16 y,
+                 ^
+../src/mlsLCD/inc/mlsLCDDriver.h:112:27: error: unknown type name 'UInt16'
+ void mlsLCDPuts(UInt16 x, UInt16 y,
+                           ^
+../src/mlsLCD/inc/mlsLCDDriver.h:114:3: error: unknown type name 'UInt16'
+   UInt16 foreground, UInt16 background, UInt16 space);
+   ^
+../src/mlsLCD/inc/mlsLCDDriver.h:114:22: error: unknown type name 'UInt16'
+   UInt16 foreground, UInt16 background, UInt16 space);
+                      ^
+../src/mlsLCD/inc/mlsLCDDriver.h:114:41: error: unknown type name 'UInt16'
+   UInt16 foreground, UInt16 background, UInt16 space);
+                                         ^
+../src/mlsLCD/inc/mlsLCDDriver.h:120:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDRotate(mlsLCD_Orientation_t orientation);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:124:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDTestMain();
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:131:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDrawSTYLLogo(UInt16 x,UInt16 y);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:131:35: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawSTYLLogo(UInt16 x,UInt16 y);
+                                   ^
+../src/mlsLCD/inc/mlsLCDDriver.h:131:44: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawSTYLLogo(UInt16 x,UInt16 y);
+                                            ^
+../src/mlsLCD/inc/mlsLCDDriver.h:139:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDrawFilledCircle(UInt16 x0, UInt16 y0, UInt16 r, UInt32 color);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:139:39: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawFilledCircle(UInt16 x0, UInt16 y0, UInt16 r, UInt32 color);
+                                       ^
+../src/mlsLCD/inc/mlsLCDDriver.h:139:50: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawFilledCircle(UInt16 x0, UInt16 y0, UInt16 r, UInt32 color);
+                                                  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:139:61: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawFilledCircle(UInt16 x0, UInt16 y0, UInt16 r, UInt32 color);
+                                                             ^
+../src/mlsLCD/inc/mlsLCDDriver.h:139:71: error: unknown type name 'UInt32'
+ mlsErrorCode_t mlsLCDDrawFilledCircle(UInt16 x0, UInt16 y0, UInt16 r, UInt32 color);
+                                                                       ^
+../src/mlsLCD/inc/mlsLCDDriver.h:149:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:149:32: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image);
+                                ^
+../src/mlsLCD/inc/mlsLCDDriver.h:149:41: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image);
+                                         ^
+../src/mlsLCD/inc/mlsLCDDriver.h:149:50: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image);
+                                                  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:149:64: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image);
+                                                                ^
+../src/mlsLCD/inc/mlsLCDDriver.h:149:79: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLCDDrawImage(UInt16 x,UInt16 y,UInt16 width, UInt16 height, UInt16 *image);
+                                                                               ^
+../src/mlsLCD/inc/mlsLCDDriver.h:156:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLcd_LoadString(UInt8 lineNbr, char *pString);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:156:34: error: unknown type name 'UInt8'
+ mlsErrorCode_t mlsLcd_LoadString(UInt8 lineNbr, char *pString);
+                                  ^
+../src/mlsLCD/inc/mlsLCDDriver.h:162:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLcd_DisplayString(UInt16 lineMask);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:162:37: error: unknown type name 'UInt16'
+ mlsErrorCode_t mlsLcd_DisplayString(UInt16 lineMask);
+                                     ^
+../src/mlsLCD/inc/mlsLCDDriver.h:168:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDisplayRawQRCode(Int8 * szSourceSring,mlsLcdAlign_t align);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:168:39: error: unknown type name 'Int8'
+ mlsErrorCode_t mlsLCDDisplayRawQRCode(Int8 * szSourceSring,mlsLcdAlign_t align);
+                                       ^
+../src/mlsLCD/inc/mlsLCDDriver.h:174:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDisplayCustomQRCode(Int8 * szSourceSring);
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:174:42: error: unknown type name 'Int8'
+ mlsErrorCode_t mlsLCDDisplayCustomQRCode(Int8 * szSourceSring);
+                                          ^
+../src/mlsLCD/inc/mlsLCDDriver.h:184:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDDisplayQRText(Int8 * SourceSring,
+ ^
+../src/mlsLCD/inc/mlsLCDDriver.h:184:36: error: unknown type name 'Int8'
+ mlsErrorCode_t mlsLCDDisplayQRText(Int8 * SourceSring,
+                                    ^
+In file included from ../src/mlsLCD/tst/mlsLCDTest.c:31:0:
+../src/mlsLCD/inc/mlsCalibri15pts.h:48:14: error: unknown type name 'UInt8'
+ extern const UInt8 calibri_15ptBitmaps[];
+              ^
+../src/mlsLCD/inc/mlsCalibri15pts.h:50:14: error: unknown type name 'UInt16'
+ extern const UInt16 calibri_15ptDescriptors[];
+              ^
+../src/mlsLCD/tst/mlsLCDTest.c:46:1: error: unknown type name 'mlsErrorCode_t'
+ mlsErrorCode_t mlsLCDTestMain()
+ ^
+../src/mlsLCD/tst/mlsLCDTest.c: In function 'mlsLCDTestMain':
+../src/mlsLCD/tst/mlsLCDTest.c:48:2: error: unknown type name 'mlsErrorCode_t'
+  mlsErrorCode_t errorCode = MLS_SUCCESS;
+  ^
+../src/mlsLCD/tst/mlsLCDTest.c:48:29: error: 'MLS_SUCCESS' undeclared (first use in this function)
+  mlsErrorCode_t errorCode = MLS_SUCCESS;
+                             ^
+../src/mlsLCD/tst/mlsLCDTest.c:48:29: note: each undeclared identifier is reported only once for each function it appears in
+../src/mlsLCD/tst/mlsLCDTest.c:50:2: warning: implicit declaration of function 'mlsLCDDrawScreen' [-Wimplicit-function-declaration]
+  mlsLCDDrawScreen(LCD_WHITE);
+  ^
+../src/mlsLCD/tst/mlsLCDTest.c:52:2: warning: implicit declaration of function 'mlsLCDDisplayCustomQRCode' [-Wimplicit-function-declaration]
+  mlsLCDDisplayCustomQRCode("Le Duy Truong");
+  ^
+src/mlsLCD/tst/subdir.mk:18: recipe for target 'src/mlsLCD/tst/mlsLCDTest.o' failed
+make: *** [src/mlsLCD/tst/mlsLCDTest.o] Error 1
+
+14:18:08 Build Finished (took 1s.37ms)
+
