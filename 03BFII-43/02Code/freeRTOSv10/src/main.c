@@ -55,98 +55,83 @@
 #include <MAX325xx.h>
 #include "FreeRTOS.h"
 #include "task.h"
-#include "timers.h"
-#include "queue.h"
-#include "semphr.h"
 #include "event_groups.h"
+#include "timers.h" /* For the xTimerPendFunctionCallFromISR() function. */
 
 
-#define EX_BLINK_LED_VERS_MAJOR	2
-#define EX_BLINK_LED_VERS_MINOR	0
-#define EX_BLINK_LED_VERS_PATCH	1
-#define EX_BLINK_LED_VERSION_STRING	"v" xstr(EX_BLINK_LED_VERS_MAJOR) "." xstr(EX_BLINK_LED_VERS_MINOR) "." xstr(EX_BLINK_LED_VERS_PATCH)
-
-
-#define LED1_GPIO_PORT	MML_GPIO_DEV0
-#define LED1_GPIO_PIN	21
-#define DELAY_TIME		1000
-
+/* The number of the simulated interrupt used in this example.  Numbers 0 to 2
+are used by the FreeRTOS Windows port itself, so 3 is the first number available
+to the application. */
 #define mainSW_INTERRUPT_ID 		((IRQn_Type) Watchdog_Timer_IRQn)
-#define mainTRIGGER_INTERRUPT() 		NVIC_SetPendingIRQ( mainSW_INTERRUPT_ID )
-#define mainCLEAR_INTERRUPT() 		NVIC_ClearPendingIRQ( mainSW_INTERRUPT_ID )
+#define mainINTERRUPT_NUMBER	3
 
-xSemaphoreHandle xBinarySemaphore;
+/* Definitions for the event bits in the event group. */
+#define mainFIRST_TASK_BIT	( 1UL << 0UL ) /* Event bit 0, which is set by a task. */
+#define mainSECOND_TASK_BIT	( 1UL << 1UL ) /* Event bit 1, which is set by a task. */
+#define mainISR_BIT			( 1UL << 2UL ) /* Event bit 2, which is set by an ISR. */
+
+#define vPortGenerateSimulatedInterrupt(x) 	NVIC_SetPendingIRQ( x )
+static void vPortSetInterruptHandler( void );
 
 void uart_init(void);
+void vPrintString( char* pvParameter1 );
 
-void vTask1(void * pvParameters );
-void vTask2(void * pvParameters );
+/* The tasks to be created. */
+static void vIntegerGenerator( void *pvParameters );
+static void vEventBitSettingTask( void *pvParameters );
+static void vEventBitReadingTask( void *pvParameters );
 
-static void prvSetupSoftwareInterrupt( void );
+/* A function that can be deferred to run in the RTOS daemon task.  The function
+prints out the string passed to it using the pvParameter1 parameter. */
+void vPrintStringFromDaemonTask( void *pvParameter1, uint32_t ulParameter2 );
 
-int i = 0;
+/* The service routine for the (simulated) interrupt.  This is the interrupt
+that sets an event bit in the event group. */
+void WDG_IRQHandler( void );
 
-void __attribute__ ((noinline))  __attribute__((optimize("-O0"))) 
-loop_delay(unsigned int ms)
+/*-----------------------------------------------------------*/
+
+/* Declare the event group in which bits are set from both a task and an ISR. */
+EventGroupHandle_t xEventGroup;
+
+int main( void )
 {
-     unsigned int i = ms*5000;
-     unsigned int systemfreq = 0;
-     mml_get_system_frequency(&systemfreq);
+	uart_init();
+	vTraceEnable(TRC_INIT);
+	printf("\nWelcome to WDT example\n\n");
 
-     i /= (MML_SYSTEM_FREQUENCY_108_MHZ/systemfreq);
+	/* Before an event group can be used it must first be created. */
+	xEventGroup = xEventGroupCreate();
 
-     for (; i != 0 ; i--)
-          __asm volatile ("nop\n");
+	/* Create the task that sets event bits in the event group. */
+	xTaskCreate( vEventBitSettingTask, "BitSetter", 1000, NULL, 1, NULL );
 
+	/* Create the task that waits for event bits to get set in the event
+	group. */
+	xTaskCreate( vEventBitReadingTask, "BitReader", 1000, NULL, 2, NULL );
+
+	/* Create the task that is used to periodically generate a software
+	interrupt. */
+	xTaskCreate( vIntegerGenerator, "IntGen", 1000, NULL, 3, NULL );
+
+	/* Install the handler for the software interrupt.  The syntax necessary
+	to do this is dependent on the FreeRTOS port being used.  The syntax
+	shown here can only be used with the FreeRTOS Windows port, where such
+	interrupts are only simulated. */
+	vPortSetInterruptHandler();
+
+	/* Start the scheduler so the created tasks start executing. */
+	vTaskStartScheduler();
+
+	/* The following line should never be reached because vTaskStartScheduler()
+	will only return if there was not enough FreeRTOS heap memory available to
+	create the Idle and (if configured) Timer tasks.  Heap management, and
+	techniques for trapping heap exhaustion, are described in the book text. */
+	for( ;; );
+	return 0;
 }
 
-int main(void)
-{
-		prvSetupSoftwareInterrupt();
-		uart_init();
-		printf("\nWelcome to WDT example\n\n");
-		xTaskCreate( vTask1, "Task 1",100, NULL, 1,NULL );
-		xTaskCreate( vTask2, "Task 2",2500, "LeDTruong", 2,NULL );
-		vTaskStartScheduler();
-	while (1) {
-	}
-}
-
-void vTask1( void *pvParameters )
-{
-	int one = 0;
-	for( ;; )
-	{
-		one++;
-		vTaskDelay(pdMS_TO_TICKS(1000));
-	}
-}
-
-void vTask2( void * pvParameters )
-{
-	int two = 0;
-	for( ;; )
-	{
-		two++;
-		mainTRIGGER_INTERRUPT();
-		vTaskDelay(pdMS_TO_TICKS(2000));
-	}
-}
-
-static void prvSetupSoftwareInterrupt( void )
-{
-	NVIC_SetPriority(mainSW_INTERRUPT_ID, 1);
-	NVIC_EnableIRQ(mainSW_INTERRUPT_ID);
-}
-
-void WDG_IRQHandler() {
-	i++;
-	printf("\nWelcome to WDG_IRQHandler example\n\n");
-	printf("%d", i);
-	mainCLEAR_INTERRUPT();
-//	NVIC_ClearPendingIRQ(Watchdog_Timer_IRQn);
-}
-
+/*-----------------------------------------------------------*/
 void uart_init(void) {
 	mml_uart_config_t uart_conf;								/* Structure to initialize uart. */
 
@@ -161,9 +146,124 @@ void uart_init(void) {
 	/* Initialize UART */
 	mml_uart_init(MML_UART_DEV0, uart_conf);
 }
+/*-----------------------------------------------------------*/
+static void vEventBitSettingTask( void *pvParameters )
+{
+const TickType_t xDelay200ms = pdMS_TO_TICKS( 200UL ), xDontBlock = 0;
 
-#ifdef __SCPA_FWK__
-#error "This example does not handle SCPA Target"
-#endif //__SCPA_FWK__
+	for( ;; )
+	{
+		/* Delay for a short while before starting the next loop. */
+		vTaskDelay( xDelay200ms );
 
+		/* Print out a message to say event bit 0 is about to be set by the
+		task, then set event bit 0. */
+		vPrintString( "Bit setting task -\t about to set bit 0.\r\n" );
+		xEventGroupSetBits( xEventGroup, mainFIRST_TASK_BIT );
 
+		/* Delay for a short while before setting the other bit set within this
+		task. */
+		vTaskDelay( xDelay200ms );
+
+		/* Print out a message to say event bit 1 is about to be set by the
+		task, then set event bit 1. */
+		vPrintString( "Bit setting task -\t about to set bit 1.\r\n" );
+		xEventGroupSetBits( xEventGroup, mainSECOND_TASK_BIT );
+	}
+}
+/*-----------------------------------------------------------*/
+
+void WDG_IRQHandler( void )
+{
+BaseType_t xHigherPriorityTaskWoken;
+
+static const char *pcString = "Bit setting ISR -\t about to set bit 2.\r\n";
+	xHigherPriorityTaskWoken = pdFALSE;
+	xTimerPendFunctionCallFromISR( vPrintStringFromDaemonTask, ( void * ) pcString, 0, &xHigherPriorityTaskWoken );
+	xEventGroupSetBitsFromISR( xEventGroup, mainISR_BIT, &xHigherPriorityTaskWoken );
+	portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+}
+/*-----------------------------------------------------------*/
+
+static void vEventBitReadingTask( void *pvParameters )
+{
+const EventBits_t xBitsToWaitFor = ( mainFIRST_TASK_BIT | mainSECOND_TASK_BIT | mainISR_BIT );
+EventBits_t xEventGroupValue;
+
+	for( ;; )
+	{
+		/* Block to wait for event bits to become set within the event group. */
+		xEventGroupValue = xEventGroupWaitBits( /* The event group to read. */
+												xEventGroup,
+
+												/* Bits to test. */
+												xBitsToWaitFor,
+
+												/* Clear bits on exit if the
+												unblock condition is met. */
+												pdTRUE,
+
+												/* Don't wait for all bits. */
+												pdFALSE,
+
+												/* Don't time out. */
+												portMAX_DELAY );
+
+		/* Print a message for each bit that was set. */
+		if( ( xEventGroupValue & mainFIRST_TASK_BIT ) != 0 )
+		{
+			vPrintString( "Bit reading task -\t event bit 0 was set\r\n" );
+		}
+
+		if( ( xEventGroupValue & mainSECOND_TASK_BIT ) != 0 )
+		{
+			vPrintString( "Bit reading task -\t event bit 1 was set\r\n" );
+		}
+
+		if( ( xEventGroupValue & mainISR_BIT ) != 0 )
+		{
+			vPrintString( "Bit reading task -\t event bit 2 was set\r\n" );
+		}
+
+		vPrintString( "\r\n" );
+	}
+}
+/*-----------------------------------------------------------*/
+
+void vPrintStringFromDaemonTask( void *pvParameter1, uint32_t ulParameter2 )
+{
+	/* The string to print is passed into this function using the pvParameter1
+	parameter. */
+	vPrintString( "LeDTruong");
+}
+/*-----------------------------------------------------------*/
+
+static void vIntegerGenerator( void *pvParameters )
+{
+TickType_t xLastExecutionTime;
+const TickType_t xDelay500ms = pdMS_TO_TICKS( 500UL );
+
+	/* Initialize the variable used by the call to vTaskDelayUntil(). */
+	xLastExecutionTime = xTaskGetTickCount();
+
+	for( ;; )
+	{
+		/* This is a periodic task.  Block until it is time to run again.
+		The task will execute every 500ms. */
+		vTaskDelayUntil( &xLastExecutionTime, xDelay500ms );
+
+		/* Generate the interrupt that will set a bit in the event group. */
+		vPortGenerateSimulatedInterrupt( mainSW_INTERRUPT_ID );
+	}
+}
+
+static void vPortSetInterruptHandler( void )
+{
+	NVIC_SetPriority(mainSW_INTERRUPT_ID, mainINTERRUPT_NUMBER);
+	NVIC_EnableIRQ(mainSW_INTERRUPT_ID);
+}
+
+void vPrintString( char* pvParameter1 )
+{
+	printf("%s", pvParameter1);
+}

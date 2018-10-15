@@ -124,6 +124,6 @@ to exclude the API function. */
 //#define xPortSysTickHandler SysTick_Handler
 
 //#define configASSERT( x )   if( ( x ) == 0 ) {lite_printf(DBG_PRINT_LEVEL_DEBUG_MASK,"File %s Line %d \r\n", __FILE__, __LINE__); }
-
+#include "trcRecorder.h"
 #endif /* FREERTOS_CONFIG_H */
 
